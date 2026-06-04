@@ -10,15 +10,19 @@ const applicationForm = document.querySelector("#applicationForm");
 const teamGrid = document.querySelector("[data-editable-team]");
 const videoGrid = document.querySelector("[data-video-grid]");
 const adminLogin = document.querySelector("#adminLogin");
+const adminDashboard = document.querySelector("#adminDashboard");
+const adminSettings = document.querySelector("#adminSettings");
 const adminContent = document.querySelector("#adminContent");
 const adminVideos = document.querySelector("#adminVideos");
 const adminLoginForm = document.querySelector("#adminLoginForm");
+const contentEditorForm = document.querySelector("#contentEditorForm");
 const adminTeamList = document.querySelector("#adminTeamList");
 const teamEditorForm = document.querySelector("#teamEditorForm");
 const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
+const contentKey = "pmgSiteContent";
 const teamKey = "pmgTeamMembers";
 const videoKey = "pmgPromotionVideos";
 const adminPasscode = "PMG2026";
@@ -41,6 +45,17 @@ const defaultTeam = [
   },
 ];
 
+const defaultContent = {
+  heroEyebrow: "Boutique property management for premium investments",
+  heroTitle: "Managing Assets. Maximising Value.",
+  heroSubtitle: "Professional Property Management Designed Around Exceptional Service.",
+  videoSectionTitle: "Future campaign videos and agency promotion reels can live here.",
+  promoTitle: "Unlock Premium Benefits",
+  promoBody: "Mention this ad and receive up to 6 months free management.*",
+  promoFinePrint: "For new managements only. Conditions apply.",
+  contactIntro: "Tell us about your property and include any promotion code in the message box.",
+};
+
 function readJson(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(key)) || fallback;
@@ -51,6 +66,10 @@ function readJson(key, fallback) {
 
 function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function siteContent() {
+  return { ...defaultContent, ...readJson(contentKey, {}) };
 }
 
 function migrateRachelPhoto() {
@@ -100,6 +119,14 @@ function renderPublicTeam() {
     .join("");
 }
 
+function renderPublicContent() {
+  const content = siteContent();
+  document.querySelectorAll("[data-content-field]").forEach((element) => {
+    const key = element.dataset.contentField;
+    if (content[key]) element.textContent = content[key];
+  });
+}
+
 function renderPublicVideos() {
   if (!videoGrid) return;
   const videos = readJson(videoKey, []);
@@ -144,11 +171,42 @@ function fileToDataUrl(file) {
 function unlockAdmin() {
   if (!adminLogin || !adminContent || !adminVideos) return;
   adminLogin.hidden = true;
+  if (adminDashboard) adminDashboard.hidden = false;
+  if (adminSettings) adminSettings.hidden = false;
   adminContent.hidden = false;
   adminVideos.hidden = false;
   sessionStorage.setItem("pmgAdminUnlocked", "true");
+  renderAdminDashboard();
+  renderContentEditor();
   renderAdminTeam();
   renderAdminVideos();
+}
+
+function lockAdmin() {
+  if (!adminLogin) return;
+  adminLogin.hidden = false;
+  if (adminDashboard) adminDashboard.hidden = true;
+  if (adminSettings) adminSettings.hidden = true;
+  if (adminContent) adminContent.hidden = true;
+  if (adminVideos) adminVideos.hidden = true;
+  sessionStorage.removeItem("pmgAdminUnlocked");
+}
+
+function renderAdminDashboard() {
+  const team = readJson(teamKey, defaultTeam);
+  const videos = readJson(videoKey, []);
+  const teamCount = document.querySelector("#teamCount");
+  const videoCount = document.querySelector("#videoCount");
+  if (teamCount) teamCount.textContent = String(team.length);
+  if (videoCount) videoCount.textContent = String(videos.length);
+}
+
+function renderContentEditor() {
+  if (!contentEditorForm) return;
+  const content = siteContent();
+  Object.entries(content).forEach(([key, value]) => {
+    if (contentEditorForm.elements[key]) contentEditorForm.elements[key].value = value;
+  });
 }
 
 function renderAdminTeam() {
@@ -296,6 +354,7 @@ applicationForm?.addEventListener("submit", (event) => {
 });
 
 migrateRachelPhoto();
+renderPublicContent();
 renderPublicTeam();
 renderPublicVideos();
 
@@ -311,6 +370,19 @@ adminLoginForm?.addEventListener("submit", (event) => {
   } else {
     alert("Incorrect admin passcode.");
   }
+});
+
+contentEditorForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const values = formValues(contentEditorForm);
+  writeJson(contentKey, { ...defaultContent, ...values });
+  renderContentEditor();
+  alert("Website content saved.");
+});
+
+document.querySelector("#resetContent")?.addEventListener("click", () => {
+  writeJson(contentKey, defaultContent);
+  renderContentEditor();
 });
 
 adminTeamList?.addEventListener("click", (event) => {
@@ -331,6 +403,8 @@ adminTeamList?.addEventListener("click", (event) => {
     team.splice(Number(deleteButton.dataset.deleteTeam), 1);
     writeJson(teamKey, team);
     renderAdminTeam();
+    renderAdminDashboard();
+    renderPublicTeam();
   }
 });
 
@@ -358,6 +432,8 @@ teamEditorForm?.addEventListener("submit", async (event) => {
   teamEditorForm.reset();
   teamEditorForm.elements.index.value = "";
   renderAdminTeam();
+  renderAdminDashboard();
+  renderPublicTeam();
 });
 
 document.querySelector("#newTeamMember")?.addEventListener("click", () => {
@@ -365,9 +441,15 @@ document.querySelector("#newTeamMember")?.addEventListener("click", () => {
   if (teamEditorForm) teamEditorForm.elements.index.value = "";
 });
 
+document.querySelector("#adminLogout")?.addEventListener("click", () => {
+  lockAdmin();
+});
+
 document.querySelector("#resetTeam")?.addEventListener("click", () => {
   writeJson(teamKey, defaultTeam);
   renderAdminTeam();
+  renderAdminDashboard();
+  renderPublicTeam();
   teamEditorForm?.reset();
 });
 
@@ -387,6 +469,7 @@ adminVideoList?.addEventListener("click", (event) => {
     videos.splice(Number(deleteButton.dataset.deleteVideo), 1);
     writeJson(videoKey, videos);
     renderAdminVideos();
+    renderAdminDashboard();
   }
 });
 
@@ -418,6 +501,7 @@ videoEditorForm?.addEventListener("submit", async (event) => {
   videoEditorForm.reset();
   videoEditorForm.elements.index.value = "";
   renderAdminVideos();
+  renderAdminDashboard();
 });
 
 document.querySelector("#newVideo")?.addEventListener("click", () => {
@@ -428,6 +512,7 @@ document.querySelector("#newVideo")?.addEventListener("click", () => {
 document.querySelector("#clearVideos")?.addEventListener("click", () => {
   writeJson(videoKey, []);
   renderAdminVideos();
+  renderAdminDashboard();
   videoEditorForm?.reset();
 });
 

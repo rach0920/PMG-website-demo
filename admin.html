@@ -29,7 +29,7 @@
         <div>
           <p class="section-kicker">Admin Access</p>
           <h1>PMG Website Admin</h1>
-          <p class="admin-muted">Enter the admin passcode to edit team members and promotion videos.</p>
+          <p class="admin-muted">Enter the admin passcode to manage homepage content, team members and promotion videos.</p>
         </div>
         <form class="admin-form" id="adminLoginForm">
           <label class="full">
@@ -37,6 +37,84 @@
             <input type="password" name="passcode" autocomplete="current-password" required />
           </label>
           <button class="button primary full" type="submit">Access Admin</button>
+        </form>
+      </section>
+
+      <section id="adminDashboard" class="admin-panel" hidden>
+        <div>
+          <p class="section-kicker">Dashboard</p>
+          <h2>Website Admin Operations</h2>
+          <p class="admin-muted">
+            Manage public website wording, leadership team members and agency promotion videos from one place.
+          </p>
+        </div>
+        <div class="admin-stats">
+          <article>
+            <span id="teamCount">0</span>
+            <p>Team Members</p>
+          </article>
+          <article>
+            <span id="videoCount">0</span>
+            <p>Promotion Videos</p>
+          </article>
+          <article>
+            <span>Demo</span>
+            <p>Local Admin Storage</p>
+          </article>
+        </div>
+        <p class="admin-muted">
+          Note: this demo admin stores changes in this browser. A production backend will need a secure login,
+          database and media storage.
+        </p>
+        <div class="admin-actions">
+          <a class="button secondary" href="index.html#team">View Team Section</a>
+          <button class="button secondary" type="button" id="adminLogout">Logout</button>
+        </div>
+      </section>
+
+      <section id="adminSettings" class="admin-panel" hidden>
+        <div>
+          <p class="section-kicker">Homepage Content</p>
+          <h2>Edit Website Wording</h2>
+          <p class="admin-muted">Update key homepage copy without touching code.</p>
+        </div>
+        <form class="admin-form" id="contentEditorForm">
+          <label>
+            Hero Eyebrow
+            <input name="heroEyebrow" />
+          </label>
+          <label>
+            Hero Slogan
+            <input name="heroTitle" />
+          </label>
+          <label class="full">
+            Hero Subtitle
+            <input name="heroSubtitle" />
+          </label>
+          <label class="full">
+            Video Section Title
+            <input name="videoSectionTitle" />
+          </label>
+          <label>
+            Promotion Title
+            <input name="promoTitle" />
+          </label>
+          <label>
+            Promotion Fine Print
+            <input name="promoFinePrint" />
+          </label>
+          <label class="full">
+            Promotion Body
+            <input name="promoBody" />
+          </label>
+          <label class="full">
+            Contact Intro
+            <input name="contactIntro" />
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Website Content</button>
+            <button class="button secondary" type="button" id="resetContent">Reset Default Content</button>
+          </div>
         </form>
       </section>
 
@@ -73,7 +151,7 @@
           </label>
           <div class="admin-actions">
             <button class="button primary" type="submit">Save Team Member</button>
-            <button class="button secondary" type="button" id="newTeamMember">New Team Member</button>
+            <button class="button secondary" type="button" id="newTeamMember">Add New</button>
             <button class="button secondary" type="button" id="resetTeam">Reset Default Team</button>
           </div>
         </form>
