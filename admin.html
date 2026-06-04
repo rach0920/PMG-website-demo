@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin | Premium Management Group</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="admin-page">
+    <header class="site-header" data-elevate>
+      <a class="brand" href="index.html" aria-label="Premium Management Group home">
+        <img src="assets/pmg-logo.png" alt="PMG Premium Management Group" />
+      </a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="index.html">Website</a>
+        <a href="application.html">Tenant Application</a>
+      </nav>
+      <a class="nav-cta" href="index.html#contact">Contact</a>
+    </header>
+
+    <main class="admin-shell">
+      <section id="adminLogin" class="admin-panel">
+        <div>
+          <p class="section-kicker">Admin Access</p>
+          <h1>PMG Website Admin</h1>
+          <p class="admin-muted">Enter the admin passcode to edit team members and promotion videos.</p>
+        </div>
+        <form class="admin-form" id="adminLoginForm">
+          <label class="full">
+            Passcode
+            <input type="password" name="passcode" autocomplete="current-password" required />
+          </label>
+          <button class="button primary full" type="submit">Access Admin</button>
+        </form>
+      </section>
+
+      <section id="adminContent" class="admin-panel" hidden>
+        <div>
+          <p class="section-kicker">Editable Content</p>
+          <h2>Leadership Team</h2>
+          <p class="admin-muted">Add, edit, remove and upload photos for team members. Changes are stored locally in this browser.</p>
+        </div>
+
+        <div class="admin-grid" id="adminTeamList"></div>
+
+        <form class="admin-form" id="teamEditorForm">
+          <input type="hidden" name="index" />
+          <label>
+            Name
+            <input name="name" required />
+          </label>
+          <label>
+            Position
+            <input name="title" required />
+          </label>
+          <label>
+            Phone
+            <input name="phone" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label class="full">
+            Photo
+            <input type="file" name="photo" accept="image/*" />
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Team Member</button>
+            <button class="button secondary" type="button" id="newTeamMember">New Team Member</button>
+            <button class="button secondary" type="button" id="resetTeam">Reset Default Team</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="adminVideos" class="admin-panel" hidden>
+        <div>
+          <p class="section-kicker">Agency Promotion Videos</p>
+          <h2>Upload Promotion Videos</h2>
+          <p class="admin-muted">Upload campaign, agency promotion or property management videos for the homepage video section.</p>
+        </div>
+
+        <div class="admin-grid" id="adminVideoList"></div>
+
+        <form class="admin-form" id="videoEditorForm">
+          <input type="hidden" name="index" />
+          <label>
+            Video Title
+            <input name="title" required />
+          </label>
+          <label>
+            Short Description
+            <input name="description" />
+          </label>
+          <label class="full">
+            Video File
+            <input type="file" name="video" accept="video/*" />
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Video</button>
+            <button class="button secondary" type="button" id="newVideo">New Video</button>
+            <button class="button secondary" type="button" id="clearVideos">Clear Videos</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

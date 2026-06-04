@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tenant Application | Premium Management Group</title>
+    <meta
+      name="description"
+      content="Submit a tenant application enquiry to Premium Management Group."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="application-page">
+    <header class="site-header" data-elevate>
+      <a class="brand" href="index.html" aria-label="Premium Management Group home">
+        <img src="assets/pmg-logo.png" alt="PMG Premium Management Group" />
+      </a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#showcase">Showcase</a>
+        <a href="index.html#team">Team</a>
+        <a href="application.html">Tenant Application</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="nav-cta" href="index.html#contact">Get Appraisal</a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a href="index.html#about">About</a>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#showcase">Showcase</a>
+      <a href="index.html#team">Team</a>
+      <a href="application.html">Tenant Application</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+
+    <main>
+      <section class="page-hero">
+        <div class="hero-media" aria-hidden="true">
+          <img src="assets/showcase-hd-02.png" alt="" />
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="page-hero-content reveal">
+          <p class="eyebrow">Premium Management Group</p>
+          <h1>Tenant Application</h1>
+          <p>
+            Complete your rental application details below. When the online application link is provided, the
+            application button can be updated to send applicants directly to that form.
+          </p>
+        </div>
+      </section>
+
+      <section class="section application-section">
+        <div class="application-intro reveal">
+          <p class="section-kicker">Apply With PMG</p>
+          <h2>Submit your interest for a PMG managed property.</h2>
+          <p>
+            Your application enquiry will be addressed to Rachel Han and Edwin Lee. Please include the property
+            address and any supporting notes.
+          </p>
+          <a class="button secondary" href="mailto:rachel@premiummg.com.au,edwin@premiummg.com.au?subject=PMG%20Tenant%20Application%20Request">
+            Request Online Application Link
+          </a>
+        </div>
+
+        <form class="contact-form reveal" id="applicationForm">
+          <label>
+            Full Name
+            <input name="name" autocomplete="name" required />
+          </label>
+          <label>
+            Phone
+            <input name="phone" autocomplete="tel" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label>
+            Property Address
+            <input name="property" autocomplete="street-address" required />
+          </label>
+          <label>
+            Preferred Move-in Date
+            <input type="date" name="moveDate" />
+          </label>
+          <label>
+            Number of Occupants
+            <input type="number" min="1" name="occupants" />
+          </label>
+          <label class="full">
+            Message
+            <textarea name="message" rows="5" placeholder="Employment, pets, inspection details or application notes."></textarea>
+          </label>
+          <button class="button primary full" type="submit">Submit Application Enquiry</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <img src="assets/pmg-logo.png" alt="PMG Premium Management Group" />
+      <p>Premium Service. Premium Communication. Premium Results.</p>
+      <div>
+        <a href="mailto:rachel@premiummg.com.au">rachel@premiummg.com.au</a>
+        <a href="mailto:edwin@premiummg.com.au">edwin@premiummg.com.au</a>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
