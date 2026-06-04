@@ -670,6 +670,45 @@ h3 {
   color: rgba(255, 255, 255, 0.78);
 }
 
+.footer-legal-link {
+  color: var(--gold-light) !important;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.legal-page {
+  background:
+    linear-gradient(180deg, rgba(8, 26, 49, 0.98), rgba(3, 5, 7, 1)),
+    #030507;
+}
+
+.legal-shell {
+  width: min(980px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 140px 0 80px;
+}
+
+.legal-shell h1 {
+  max-width: 760px;
+  font-size: clamp(42px, 6vw, 82px);
+}
+
+.legal-block {
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  padding: clamp(22px, 4vw, 42px);
+  background: linear-gradient(180deg, rgba(13, 24, 39, 0.9), rgba(5, 9, 15, 0.96));
+}
+
+.legal-block h2 {
+  font-size: clamp(28px, 3vw, 42px);
+  text-transform: uppercase;
+}
+
+.legal-block p {
+  color: var(--muted);
+}
+
 .modal {
   position: fixed;
   inset: 0;
