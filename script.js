@@ -20,6 +20,7 @@ const adminTeamList = document.querySelector("#adminTeamList");
 const teamEditorForm = document.querySelector("#teamEditorForm");
 const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
+const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
 const contentKey = "pmgSiteContent";
@@ -171,10 +172,13 @@ function fileToDataUrl(file) {
 function unlockAdmin() {
   if (!adminLogin || !adminContent || !adminVideos) return;
   adminLogin.hidden = true;
-  if (adminDashboard) adminDashboard.hidden = false;
-  if (adminSettings) adminSettings.hidden = false;
-  adminContent.hidden = false;
-  adminVideos.hidden = false;
+  adminPrivateSections.forEach((section) => {
+    section.hidden = false;
+    section.inert = false;
+    section.querySelectorAll("input, textarea, select, button").forEach((control) => {
+      control.disabled = false;
+    });
+  });
   sessionStorage.setItem("pmgAdminUnlocked", "true");
   renderAdminDashboard();
   renderContentEditor();
@@ -185,10 +189,13 @@ function unlockAdmin() {
 function lockAdmin() {
   if (!adminLogin) return;
   adminLogin.hidden = false;
-  if (adminDashboard) adminDashboard.hidden = true;
-  if (adminSettings) adminSettings.hidden = true;
-  if (adminContent) adminContent.hidden = true;
-  if (adminVideos) adminVideos.hidden = true;
+  adminPrivateSections.forEach((section) => {
+    section.hidden = true;
+    section.inert = true;
+    section.querySelectorAll("input, textarea, select, button").forEach((control) => {
+      control.disabled = true;
+    });
+  });
   sessionStorage.removeItem("pmgAdminUnlocked");
 }
 
@@ -357,6 +364,8 @@ migrateRachelPhoto();
 renderPublicContent();
 renderPublicTeam();
 renderPublicVideos();
+
+lockAdmin();
 
 if (sessionStorage.getItem("pmgAdminUnlocked") === "true") {
   unlockAdmin();
