@@ -761,6 +761,40 @@ h3 {
   font-weight: 800;
 }
 
+.generated-code:empty {
+  display: none;
+}
+
+.promo-lead-form,
+.promo-code-panel {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.promo-lead-form label {
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.promo-lead-form input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white);
+  outline: none;
+}
+
+.promo-lead-form input:focus {
+  border-color: var(--gold-light);
+}
+
 .modal-note,
 .conditions p {
   color: var(--muted);
@@ -815,7 +849,7 @@ h3 {
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -879,6 +913,35 @@ h3 {
 
 .admin-muted {
   color: var(--muted);
+}
+
+.admin-leads-list {
+  overflow-x: auto;
+}
+
+.admin-table {
+  min-width: 860px;
+  border: 1px solid rgba(229, 195, 125, 0.2);
+}
+
+.admin-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr 1.1fr 1.1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(229, 195, 125, 0.14);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-table-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-table-head {
+  color: var(--gold-light);
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .reveal {

@@ -3,6 +3,8 @@ const mobileNav = document.querySelector(".mobile-nav");
 const header = document.querySelector("[data-elevate]");
 const promoModal = document.querySelector("#promoModal");
 const generatedCode = document.querySelector("#generatedCode");
+const promoLeadForm = document.querySelector("#promoLeadForm");
+const promoCodePanel = document.querySelector("#promoCodePanel");
 const promoButtons = document.querySelectorAll("[data-open-promo]");
 const closePromoButtons = document.querySelectorAll("[data-close-promo]");
 const contactForm = document.querySelector("#contactForm");
@@ -14,20 +16,24 @@ const adminDashboard = document.querySelector("#adminDashboard");
 const adminSettings = document.querySelector("#adminSettings");
 const adminContent = document.querySelector("#adminContent");
 const adminVideos = document.querySelector("#adminVideos");
+const adminLeads = document.querySelector("#adminLeads");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const contentEditorForm = document.querySelector("#contentEditorForm");
 const adminTeamList = document.querySelector("#adminTeamList");
 const teamEditorForm = document.querySelector("#teamEditorForm");
 const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
+const adminLeadsList = document.querySelector("#adminLeadsList");
 const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
 const contentKey = "pmgSiteContent";
 const teamKey = "pmgTeamMembers";
 const videoKey = "pmgPromotionVideos";
+const leadsKey = "pmgPromotionLeads";
 const adminPasscode = "PMG2026";
 const rachelPhoto = "assets/rachel-han.png";
+const fixedPromoCode = "6MONTHSFREE";
 
 const defaultTeam = [
   {
@@ -78,7 +84,7 @@ function migrateRachelPhoto() {
   if (!saved) return;
   const team = readJson(teamKey, defaultTeam);
   const rachel = team.find((member) => member.name === "Rachel Han");
-  if (rachel && !rachel.photo) {
+  if (rachel) {
     rachel.photo = rachelPhoto;
     writeJson(teamKey, team);
   }
@@ -112,7 +118,7 @@ function renderPublicTeam() {
             <p class="team-role">${escapeText(member.title)}</p>
             <h3>${escapeText(member.name)}</h3>
             <a href="tel:${member.phone.replace(/\\s/g, "")}">${escapeText(member.phone)}</a>
-            <a href="mailto:${member.email}">${escapeText(member.email)}</a>
+            <a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>
           </div>
         </article>
       `
@@ -184,6 +190,7 @@ function unlockAdmin() {
   renderContentEditor();
   renderAdminTeam();
   renderAdminVideos();
+  renderAdminLeads();
 }
 
 function lockAdmin() {
@@ -202,10 +209,13 @@ function lockAdmin() {
 function renderAdminDashboard() {
   const team = readJson(teamKey, defaultTeam);
   const videos = readJson(videoKey, []);
+  const leads = readJson(leadsKey, []);
   const teamCount = document.querySelector("#teamCount");
   const videoCount = document.querySelector("#videoCount");
+  const leadCount = document.querySelector("#leadCount");
   if (teamCount) teamCount.textContent = String(team.length);
   if (videoCount) videoCount.textContent = String(videos.length);
+  if (leadCount) leadCount.textContent = String(leads.length);
 }
 
 function renderContentEditor() {
@@ -265,26 +275,47 @@ function renderAdminVideos() {
     : `<p class="admin-muted">No videos uploaded yet.</p>`;
 }
 
+function renderAdminLeads() {
+  if (!adminLeadsList) return;
+  const leads = readJson(leadsKey, []);
+  adminLeadsList.innerHTML = leads.length
+    ? `
+      <div class="admin-table">
+        <div class="admin-table-row admin-table-head">
+          <span>Name</span>
+          <span>Email</span>
+          <span>Phone</span>
+          <span>Code</span>
+          <span>Date</span>
+        </div>
+        ${leads
+          .map(
+            (lead) => `
+              <div class="admin-table-row">
+                <span>${escapeText(lead.name)}</span>
+                <span>${escapeText(lead.email)}</span>
+                <span>${escapeText(lead.phone)}</span>
+                <span>${escapeText(lead.code)}</span>
+                <span>${escapeText(lead.createdAt)}</span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : `<p class="admin-muted">No promotion leads recorded yet.</p>`;
+}
+
 function setHeaderState() {
   if (!header) return;
   header.classList.toggle("is-scrolled", window.scrollY > 12);
 }
 
-function generatePromoCode() {
-  const existing = sessionStorage.getItem("pmgPromoCode");
-  if (existing) return existing;
-  const date = new Date();
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
-  const code = `PMG-${day}${month}-${random}`;
-  sessionStorage.setItem("pmgPromoCode", code);
-  return code;
-}
-
 function openPromoModal() {
   if (!promoModal || !generatedCode) return;
-  generatedCode.textContent = generatePromoCode();
+  generatedCode.textContent = "";
+  if (promoLeadForm) promoLeadForm.hidden = false;
+  if (promoCodePanel) promoCodePanel.hidden = true;
   promoModal.classList.add("is-open");
   promoModal.setAttribute("aria-hidden", "false");
   document.body.classList.add("modal-open");
@@ -344,6 +375,25 @@ contactForm?.addEventListener("submit", (event) => {
     "Property Address": values.property,
     Message: values.message,
   });
+});
+
+promoLeadForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const values = formValues(promoLeadForm);
+  const leads = readJson(leadsKey, []);
+  leads.unshift({
+    name: values.name,
+    email: values.email,
+    phone: values.phone,
+    code: fixedPromoCode,
+    createdAt: new Date().toLocaleString(),
+  });
+  writeJson(leadsKey, leads);
+  generatedCode.textContent = fixedPromoCode;
+  promoLeadForm.hidden = true;
+  if (promoCodePanel) promoCodePanel.hidden = false;
+  renderAdminDashboard();
+  renderAdminLeads();
 });
 
 applicationForm?.addEventListener("submit", (event) => {
@@ -523,6 +573,27 @@ document.querySelector("#clearVideos")?.addEventListener("click", () => {
   renderAdminVideos();
   renderAdminDashboard();
   videoEditorForm?.reset();
+});
+
+document.querySelector("#clearLeads")?.addEventListener("click", () => {
+  writeJson(leadsKey, []);
+  renderAdminLeads();
+  renderAdminDashboard();
+});
+
+document.querySelector("#exportLeads")?.addEventListener("click", () => {
+  const leads = readJson(leadsKey, []);
+  const rows = [["Name", "Email", "Phone", "Code", "Date"], ...leads.map((lead) => [lead.name, lead.email, lead.phone, lead.code, lead.createdAt])];
+  const csv = rows
+    .map((row) => row.map((cell) => `"${String(cell || "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "pmg-promotion-leads.csv";
+  link.click();
+  URL.revokeObjectURL(url);
 });
 
 const observer = new IntersectionObserver(

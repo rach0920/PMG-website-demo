@@ -273,11 +273,29 @@
       <div class="modal-panel">
         <button class="modal-close" type="button" data-close-promo aria-label="Close promotion">x</button>
         <p class="section-kicker">Claim Promotion</p>
-        <h2 id="promoTitle">Your PMG Special Code</h2>
-        <div class="generated-code" id="generatedCode">PMG-000000</div>
-        <p class="modal-note">
-          Mention this code in the contact box when enquiring to redeem the offer.
-        </p>
+        <h2 id="promoTitle">Unlock Your Premium Offer</h2>
+        <form class="promo-lead-form" id="promoLeadForm">
+          <label>
+            Name
+            <input name="name" autocomplete="name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label>
+            Phone
+            <input name="phone" autocomplete="tel" required />
+          </label>
+          <button class="button primary" type="submit">Reveal Promotion Code</button>
+        </form>
+        <div class="promo-code-panel" id="promoCodePanel" hidden>
+          <div class="generated-code" id="generatedCode"></div>
+          <p class="modal-note">
+            Mention this code in the contact box when enquiring to redeem the offer.
+          </p>
+          <a class="button primary" href="#contact" data-close-promo>Use Code In Contact Form</a>
+        </div>
         <div class="conditions">
           <h3>Conditions</h3>
           <p>
@@ -288,7 +306,6 @@
             and may be withdrawn or varied at any time.
           </p>
         </div>
-        <a class="button primary" href="#contact" data-close-promo>Use Code In Contact Form</a>
       </div>
     </div>
 

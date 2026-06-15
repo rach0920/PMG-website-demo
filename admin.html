@@ -59,6 +59,10 @@
             <p>Promotion Videos</p>
           </article>
           <article>
+            <span id="leadCount">0</span>
+            <p>Promotion Leads</p>
+          </article>
+          <article>
             <span>Demo</span>
             <p>Local Admin Storage</p>
           </article>
@@ -186,6 +190,21 @@
             <button class="button secondary" type="button" id="clearVideos">Clear Videos</button>
           </div>
         </form>
+      </section>
+
+      <section id="adminLeads" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Promotion Leads</p>
+          <h2>Claimed Promotion Code Data</h2>
+          <p class="admin-muted">
+            View visitors who submitted their name, email and phone to reveal the fixed promotion code.
+          </p>
+        </div>
+        <div class="admin-leads-list" id="adminLeadsList"></div>
+        <div class="admin-actions">
+          <button class="button secondary" type="button" id="exportLeads">Export CSV</button>
+          <button class="button secondary" type="button" id="clearLeads">Clear Leads</button>
+        </div>
       </section>
     </main>
 
