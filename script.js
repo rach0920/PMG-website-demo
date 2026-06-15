@@ -56,12 +56,20 @@ const defaultContent = {
   heroEyebrow: "Boutique property management for premium investments",
   heroTitle: "Managing Assets. Maximising Value.",
   heroSubtitle: "Professional Property Management Designed Around Exceptional Service.",
-  videoSectionTitle: "Future campaign videos and agency promotion reels can live here.",
+  videoSectionTitle: "Agency Promotion Videos",
   promoTitle: "Unlock Premium Benefits",
   promoBody: "Mention this ad and receive up to 6 months free management.*",
   promoFinePrint: "For new managements only. Conditions apply.",
   contactIntro: "Tell us about your property and include any promotion code in the message box.",
 };
+
+const defaultVideos = [
+  {
+    title: "Agency Promotion Video",
+    description: "Premium Management Group agency promotion.",
+    src: "assets/agency-promotion.mp4",
+  },
+];
 
 function readJson(key, fallback) {
   try {
@@ -136,7 +144,7 @@ function renderPublicContent() {
 
 function renderPublicVideos() {
   if (!videoGrid) return;
-  const videos = readJson(videoKey, []);
+  const videos = readJson(videoKey, defaultVideos);
   if (!videos.length) return;
   videoGrid.innerHTML = videos
     .map(
