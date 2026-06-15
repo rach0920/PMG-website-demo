@@ -533,7 +533,7 @@ h3 {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .video-card-content,
