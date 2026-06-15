@@ -2,6 +2,10 @@ const recipients = (process.env.NOTIFICATION_TO || "rachel@premiummg.com.au,edwi
   .split(",")
   .map((email) => email.trim())
   .filter(Boolean);
+const applicationRecipients = (process.env.APPLICATION_TO || "rachel@premiummg.com.au")
+  .split(",")
+  .map((email) => email.trim())
+  .filter(Boolean);
 
 const fromEmail = process.env.RESEND_FROM_EMAIL || "PMG Website <onboarding@resend.dev>";
 
@@ -73,7 +77,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: recipients,
+        to: type === "application" ? applicationRecipients : recipients,
         subject,
         html,
       }),

@@ -419,23 +419,21 @@ async function uploadPublicFile(bucket, file) {
   return db.storage.from(targetBucket).getPublicUrl(path).data.publicUrl;
 }
 
-function composeMail(subject, fields) {
-  const body = Object.entries(fields)
-    .filter(([, value]) => value)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join("\n");
-  window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 async function sendEmailNotification(type, payload) {
-  try {
-    await fetch("/api/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, payload }),
-    });
-  } catch (error) {
-    console.warn("Email notification failed", error);
+  const response = await fetch("/api/send-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, payload }),
+  });
+  if (!response.ok) {
+    let message = "Email notification failed.";
+    try {
+      const result = await response.json();
+      message = result.error || result.message || JSON.stringify(result);
+    } catch {
+      message = await response.text();
+    }
+    throw new Error(message);
   }
 }
 
@@ -478,6 +476,14 @@ document.addEventListener("keydown", (event) => event.key === "Escape" && closeP
 contactForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(contactForm);
+  const payload = {
+    Name: values.name,
+    Phone: values.phone,
+    Email: values.email,
+    "Property Address": values.property,
+    Message: values.message,
+  };
+
   if (db) {
     const { error } = await db.from("enquiries").insert({
       name: values.name,
@@ -486,28 +492,18 @@ contactForm?.addEventListener("submit", async (event) => {
       property_address: values.property,
       message: values.message,
     });
-    if (!error) {
-      await sendEmailNotification("enquiry", {
-        Name: values.name,
-        Phone: values.phone,
-        Email: values.email,
-        "Property Address": values.property,
-        Message: values.message,
-      });
-      alert("Thank you. Your enquiry has been submitted.");
-      contactForm.reset();
-      await renderAdminDashboard();
-      await renderAdminEnquiries();
-      return;
-    }
+    if (error) console.warn("Enquiry database insert failed", error);
   }
-  composeMail("PMG Property Management Enquiry", {
-    Name: values.name,
-    Phone: values.phone,
-    Email: values.email,
-    "Property Address": values.property,
-    Message: values.message,
-  });
+
+  try {
+    await sendEmailNotification("enquiry", payload);
+    alert("Thank you. Your enquiry has been submitted.");
+    contactForm.reset();
+    await renderAdminDashboard();
+    await renderAdminEnquiries();
+  } catch (error) {
+    alert(`Your enquiry could not be sent automatically. Please try again or contact PMG directly. ${error.message}`);
+  }
 });
 
 promoLeadForm?.addEventListener("submit", async (event) => {
@@ -521,12 +517,16 @@ promoLeadForm?.addEventListener("submit", async (event) => {
       code: fixedPromoCode,
     });
   }
-  await sendEmailNotification("promotion", {
-    Name: values.name,
-    Email: values.email,
-    Phone: values.phone,
-    Code: fixedPromoCode,
-  });
+  try {
+    await sendEmailNotification("promotion", {
+      Name: values.name,
+      Email: values.email,
+      Phone: values.phone,
+      Code: fixedPromoCode,
+    });
+  } catch (error) {
+    console.warn("Promotion email notification failed", error);
+  }
   generatedCode.textContent = fixedPromoCode;
   promoLeadForm.hidden = true;
   promoLeadForm.reset();
@@ -546,22 +546,26 @@ applicationForm?.addEventListener("submit", async (event) => {
       property_address: values.property,
       data: values,
     });
-    await sendEmailNotification("application", {
-      Name: values.name,
-      Phone: values.phone,
-      Email: values.email,
-      "Property Address": values.property,
-      "Preferred Move-in Date": values.moveDate,
-      Occupants: values.occupants,
-      Message: values.message,
-    });
+    try {
+      await sendEmailNotification("application", {
+        Name: values.name,
+        Phone: values.phone,
+        Email: values.email,
+        "Property Address": values.property,
+        "Preferred Move-in Date": values.moveDate,
+        Occupants: values.occupants,
+        Message: values.message,
+      });
+    } catch (error) {
+      console.warn("Application email notification failed", error);
+    }
     alert("Thank you. Your application enquiry has been submitted.");
     applicationForm.reset();
     await renderAdminDashboard();
     await renderAdminApplications();
     return;
   }
-  composeMail("PMG Tenant Application Enquiry", values);
+  alert("Your application could not be submitted automatically. Please try again or contact PMG directly.");
 });
 
 adminLoginForm?.addEventListener("submit", async (event) => {
