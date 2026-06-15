@@ -824,6 +824,23 @@ h3 {
     #030507;
 }
 
+.admin-page.admin-locked .site-header,
+.admin-page.admin-locked [data-admin-private] {
+  display: none !important;
+}
+
+.admin-page.admin-locked .admin-shell {
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding-block: 42px;
+}
+
+.admin-page.admin-locked #adminLogin {
+  width: min(620px, 100%);
+  margin: 0 auto;
+}
+
 .admin-shell {
   width: min(1120px, calc(100% - 36px));
   margin: 0 auto;

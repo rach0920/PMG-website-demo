@@ -2,7 +2,24 @@ const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
 
-const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const isAdminPage = document.body.classList.contains("admin-page");
+
+function clearStoredAuth() {
+  [localStorage, sessionStorage].forEach((storage) => {
+    Object.keys(storage)
+      .filter((key) => key.startsWith("sb-") || key.includes("supabase.auth"))
+      .forEach((key) => storage.removeItem(key));
+  });
+}
+
+if (isAdminPage) clearStoredAuth();
+
+const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: true,
+  },
+});
 
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileNav = document.querySelector(".mobile-nav");
@@ -184,6 +201,7 @@ async function renderPublicVideos() {
 
 function lockAdmin() {
   if (!adminLogin) return;
+  document.body.classList.add("admin-locked");
   adminLogin.hidden = false;
   adminPrivateSections.forEach((section) => {
     section.hidden = true;
@@ -196,6 +214,7 @@ function lockAdmin() {
 
 async function unlockAdmin() {
   if (!adminLogin) return;
+  document.body.classList.remove("admin-locked");
   adminLogin.hidden = true;
   adminPrivateSections.forEach((section) => {
     section.hidden = false;
@@ -523,7 +542,10 @@ adminLoginForm?.addEventListener("submit", async (event) => {
 
 document.querySelector("#adminLogout")?.addEventListener("click", async () => {
   if (db) await db.auth.signOut();
+  clearStoredAuth();
+  adminLoginForm?.reset();
   lockAdmin();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 contentEditorForm?.addEventListener("submit", async (event) => {
