@@ -997,6 +997,18 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
         const applicationDb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        async function sendEmailNotification(type, payload) {
+            try {
+                await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, payload })
+                });
+            } catch (error) {
+                console.warn('Email notification failed', error);
+            }
+        }
+
         // Track number of items
         let coApplicantCount = 0;
         let occupantCount = 0;
@@ -1544,6 +1556,15 @@
                 alert('We could not submit the application. Please try again or contact PMG directly.');
                 return;
             }
+
+            await sendEmailNotification('application', {
+                Name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                Phone: data.phone || '',
+                Email: data.email || '',
+                'Current Address': data.currentAddress || '',
+                'Submitted At': data.submittedAt || '',
+                'Uploaded Files': data.uploadedFiles || []
+            });
 
             document.getElementById('tenancyForm').reset();
             uploadedFiles = [];

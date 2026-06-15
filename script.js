@@ -427,6 +427,18 @@ function composeMail(subject, fields) {
   window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+async function sendEmailNotification(type, payload) {
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, payload }),
+    });
+  } catch (error) {
+    console.warn("Email notification failed", error);
+  }
+}
+
 function openPromoModal() {
   if (!promoModal || !generatedCode) return;
   generatedCode.textContent = "";
@@ -475,6 +487,13 @@ contactForm?.addEventListener("submit", async (event) => {
       message: values.message,
     });
     if (!error) {
+      await sendEmailNotification("enquiry", {
+        Name: values.name,
+        Phone: values.phone,
+        Email: values.email,
+        "Property Address": values.property,
+        Message: values.message,
+      });
       alert("Thank you. Your enquiry has been submitted.");
       contactForm.reset();
       await renderAdminDashboard();
@@ -502,6 +521,12 @@ promoLeadForm?.addEventListener("submit", async (event) => {
       code: fixedPromoCode,
     });
   }
+  await sendEmailNotification("promotion", {
+    Name: values.name,
+    Email: values.email,
+    Phone: values.phone,
+    Code: fixedPromoCode,
+  });
   generatedCode.textContent = fixedPromoCode;
   promoLeadForm.hidden = true;
   promoLeadForm.reset();
@@ -520,6 +545,15 @@ applicationForm?.addEventListener("submit", async (event) => {
       email: values.email,
       property_address: values.property,
       data: values,
+    });
+    await sendEmailNotification("application", {
+      Name: values.name,
+      Phone: values.phone,
+      Email: values.email,
+      "Property Address": values.property,
+      "Preferred Move-in Date": values.moveDate,
+      Occupants: values.occupants,
+      Message: values.message,
     });
     alert("Thank you. Your application enquiry has been submitted.");
     applicationForm.reset();
