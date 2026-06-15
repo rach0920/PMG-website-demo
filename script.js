@@ -139,6 +139,7 @@ async function getVideos(includeInactive = false) {
   let query = db.from("videos").select("*").order("sort_order", { ascending: true });
   if (!includeInactive) query = query.eq("is_active", true);
   const { data, error } = await query;
+  if (includeInactive) return error || !data ? [] : data;
   if (error || !data || !data.length) return fallbackVideos;
   return data;
 }
@@ -638,7 +639,11 @@ adminVideoList?.addEventListener("click", async (event) => {
     videoEditorForm.elements.description.value = video.description || "";
   }
   if (deleteButton) {
-    await db.from("videos").delete().eq("id", deleteButton.dataset.deleteVideo);
+    const { error } = await db.from("videos").delete().eq("id", deleteButton.dataset.deleteVideo);
+    if (error) {
+      alert(`Video could not be deleted: ${error.message}`);
+      return;
+    }
     await renderAdminVideos();
     await renderAdminDashboard();
     await renderPublicVideos();
@@ -647,32 +652,43 @@ adminVideoList?.addEventListener("click", async (event) => {
 
 videoEditorForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const values = formValues(videoEditorForm);
-  const id = values.index;
-  let videoUrl = "";
-  const file = videoEditorForm.elements.video.files[0];
-  if (file) videoUrl = await uploadPublicFile("promotion-videos", file);
-  const row = {
-    title: values.title,
-    description: values.description,
-    is_active: true,
-  };
-  if (videoUrl) row.video_url = videoUrl;
-  if (id) {
-    await db.from("videos").update(row).eq("id", id);
-  } else {
-    if (!videoUrl) {
-      alert("Please upload a video file.");
+  try {
+    const values = formValues(videoEditorForm);
+    const id = values.index;
+    let videoUrl = "";
+    const file = videoEditorForm.elements.video.files[0];
+    if (file && file.size > 50 * 1024 * 1024) {
+      alert("This video is larger than the current Supabase upload limit of 50 MB. Please compress it or upload a smaller file.");
       return;
     }
-    row.sort_order = (await getVideos(true)).length + 1;
-    await db.from("videos").insert(row);
+    if (file) videoUrl = await uploadPublicFile("promotion-videos", file);
+    const row = {
+      title: values.title,
+      description: values.description,
+      is_active: true,
+    };
+    if (videoUrl) row.video_url = videoUrl;
+    if (id) {
+      const { error } = await db.from("videos").update(row).eq("id", id);
+      if (error) throw error;
+    } else {
+      if (!videoUrl) {
+        alert("Please upload a video file.");
+        return;
+      }
+      row.sort_order = (await getVideos(true)).length + 1;
+      const { error } = await db.from("videos").insert(row);
+      if (error) throw error;
+    }
+    videoEditorForm.reset();
+    videoEditorForm.elements.index.value = "";
+    await renderAdminVideos();
+    await renderAdminDashboard();
+    await renderPublicVideos();
+    alert("Video saved.");
+  } catch (error) {
+    alert(`Video could not be saved: ${error.message || error}`);
   }
-  videoEditorForm.reset();
-  videoEditorForm.elements.index.value = "";
-  await renderAdminVideos();
-  await renderAdminDashboard();
-  await renderPublicVideos();
 });
 
 document.querySelector("#newVideo")?.addEventListener("click", () => {
@@ -681,7 +697,11 @@ document.querySelector("#newVideo")?.addEventListener("click", () => {
 });
 
 document.querySelector("#clearVideos")?.addEventListener("click", async () => {
-  await db.from("videos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  const { error } = await db.from("videos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Videos could not be cleared: ${error.message}`);
+    return;
+  }
   await renderAdminVideos();
   await renderAdminDashboard();
   await renderPublicVideos();
