@@ -991,7 +991,12 @@
         </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
+        const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
+        const applicationDb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // Track number of items
         let coApplicantCount = 0;
         let occupantCount = 0;
@@ -1494,29 +1499,58 @@
                 return;
             }
 
-            // Collect form data
             const formData = new FormData(document.getElementById('tenancyForm'));
-            
-            // Add signature
             formData.append('signature', 'Signature saved in online form');
             formData.append('signatureDate', new Date().toLocaleDateString());
-            
-            // Add submitted timestamp
             formData.append('submittedAt', new Date().toISOString());
 
-            const lines = [];
+            const data = {};
+            const fileNames = [];
             formData.forEach((value, key) => {
-                if (value instanceof File) return;
-                if (String(value).length > 600) return;
-                lines.push(`${key}: ${value}`);
+                if (value instanceof File) {
+                    if (value.name) fileNames.push({ field: key, name: value.name, size: value.size, type: value.type });
+                    return;
+                }
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) data[key] = [data[key]];
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
             });
 
-            lines.push('');
-            lines.push('Uploaded documents and supporting files should be attached by the applicant when sending this email.');
+            data.uploadedFiles = [
+                ...fileNames,
+                ...uploadedFiles.map(f => ({ field: 'supportingFiles', name: f.name, date: f.date })),
+                ...uploadedIdDocs.map(f => ({ field: 'idDocuments', name: f.name, date: f.date })),
+                ...uploadedSupportingFiles.map(f => ({ field: 'supportingDocuments', name: f.name, date: f.date }))
+            ];
+            data.signatureSaved = signatureSaved;
 
-            const subject = 'PMG Tenant Application';
-            const body = lines.join('\n');
-            window.location.href = `mailto:rachel@premiummg.com.au?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            if (!applicationDb) {
+                alert('The secure application service is loading. Please refresh the page and try again.');
+                return;
+            }
+
+            const { error } = await applicationDb.from('tenant_applications').insert({
+                applicant_name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                phone: data.phone || '',
+                email: data.email || '',
+                property_address: data.currentAddress || data.propertyAddress || '',
+                data
+            });
+
+            if (error) {
+                alert('We could not submit the application. Please try again or contact PMG directly.');
+                return;
+            }
+
+            document.getElementById('tenancyForm').reset();
+            uploadedFiles = [];
+            uploadedIdDocs = [];
+            uploadedSupportingFiles = [];
+            signatureSaved = false;
+            alert('Thank you. Your application has been submitted successfully.');
         });
     </script>
 </body>

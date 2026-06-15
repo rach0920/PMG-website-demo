@@ -1,3 +1,9 @@
+const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
+
+const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const menuToggle = document.querySelector(".menu-toggle");
 const mobileNav = document.querySelector(".mobile-nav");
 const header = document.querySelector("[data-elevate]");
@@ -12,11 +18,6 @@ const applicationForm = document.querySelector("#applicationForm");
 const teamGrid = document.querySelector("[data-editable-team]");
 const videoGrid = document.querySelector("[data-video-grid]");
 const adminLogin = document.querySelector("#adminLogin");
-const adminDashboard = document.querySelector("#adminDashboard");
-const adminSettings = document.querySelector("#adminSettings");
-const adminContent = document.querySelector("#adminContent");
-const adminVideos = document.querySelector("#adminVideos");
-const adminLeads = document.querySelector("#adminLeads");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const contentEditorForm = document.querySelector("#contentEditorForm");
 const adminTeamList = document.querySelector("#adminTeamList");
@@ -24,33 +25,12 @@ const teamEditorForm = document.querySelector("#teamEditorForm");
 const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
 const adminLeadsList = document.querySelector("#adminLeadsList");
+const adminEnquiriesList = document.querySelector("#adminEnquiriesList");
+const adminApplicationsList = document.querySelector("#adminApplicationsList");
 const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
-const contentKey = "pmgSiteContent";
-const teamKey = "pmgTeamMembers";
-const videoKey = "pmgPromotionVideos";
-const leadsKey = "pmgPromotionLeads";
-const adminPasscode = "PMG2026";
-const rachelPhoto = "assets/rachel-han.png";
 const fixedPromoCode = "6MONTHSFREE";
-
-const defaultTeam = [
-  {
-    name: "Rachel Han",
-    title: "Property Manager",
-    phone: "0435 567 780",
-    email: "rachel@premiummg.com.au",
-    photo: rachelPhoto,
-  },
-  {
-    name: "Edwin Lee",
-    title: "Principal",
-    phone: "0414 322 388",
-    email: "edwin@premiummg.com.au",
-    photo: "",
-  },
-];
 
 const defaultContent = {
   heroEyebrow: "Boutique property management for premium investments",
@@ -63,104 +43,33 @@ const defaultContent = {
   contactIntro: "Tell us about your property and include any promotion code in the message box.",
 };
 
-const defaultVideos = [
+const fallbackTeam = [
   {
-    title: "Agency Promotion Video",
-    description: "Premium Management Group agency promotion.",
-    src: "assets/agency-promotion.mp4",
+    id: "fallback-rachel",
+    name: "Rachel Han",
+    title: "Property Manager",
+    phone: "0435 567 780",
+    email: "rachel@premiummg.com.au",
+    photo_url: "assets/rachel-han.png",
+  },
+  {
+    id: "fallback-edwin",
+    name: "Edwin Lee",
+    title: "Principal",
+    phone: "0414 322 388",
+    email: "edwin@premiummg.com.au",
+    photo_url: "",
   },
 ];
 
-function readJson(key, fallback) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function siteContent() {
-  return { ...defaultContent, ...readJson(contentKey, {}) };
-}
-
-function migrateRachelPhoto() {
-  const saved = localStorage.getItem(teamKey);
-  if (!saved) return;
-  const team = readJson(teamKey, defaultTeam);
-  const rachel = team.find((member) => member.name === "Rachel Han");
-  if (rachel) {
-    rachel.photo = rachelPhoto;
-    writeJson(teamKey, team);
-  }
-}
-
-function initials(name) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function renderPublicTeam() {
-  if (!teamGrid) return;
-  const team = readJson(teamKey, defaultTeam);
-  teamGrid.innerHTML = team
-    .map(
-      (member) => `
-        <article class="team-card reveal is-visible">
-          <div class="team-photo">
-            ${
-              member.photo
-                ? `<img src="${member.photo}" alt="${escapeText(member.name)}" />`
-                : `<div class="team-photo-placeholder" aria-label="${escapeText(member.name)} photo placeholder">${initials(member.name)}</div>`
-            }
-          </div>
-          <div>
-            <p class="team-role">${escapeText(member.title)}</p>
-            <h3>${escapeText(member.name)}</h3>
-            <a href="tel:${member.phone.replace(/\\s/g, "")}">${escapeText(member.phone)}</a>
-            <a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>
-          </div>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderPublicContent() {
-  const content = siteContent();
-  document.querySelectorAll("[data-content-field]").forEach((element) => {
-    const key = element.dataset.contentField;
-    if (content[key]) element.textContent = content[key];
-  });
-}
-
-function renderPublicVideos() {
-  if (!videoGrid) return;
-  const videos = readJson(videoKey, defaultVideos);
-  if (!videos.length) return;
-  videoGrid.innerHTML = videos
-    .map(
-      (video, index) => `
-        <article class="video-card reveal is-visible">
-          <video src="${video.src}" controls playsinline preload="metadata"></video>
-          <div class="video-card-content">
-            <span>${String(index + 1).padStart(2, "0")}</span>
-            <h3>${escapeText(video.title || "PMG Promotion Video")}</h3>
-            <p>${escapeText(video.description || "Premium Management Group agency promotion.")}</p>
-          </div>
-        </article>
-      `
-    )
-    .join("");
-}
+const fallbackVideos = [
+  {
+    id: "fallback-video",
+    title: "Agency Promotion Video",
+    description: "Premium Management Group agency promotion.",
+    video_url: "assets/agency-promotion.mp4",
+  },
+];
 
 function escapeText(value) {
   return String(value || "")
@@ -170,35 +79,107 @@ function escapeText(value) {
     .replace(/"/g, "&quot;");
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    if (!file) {
-      resolve("");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+function initials(name) {
+  return String(name || "")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function formValues(form) {
+  return Object.fromEntries(new FormData(form).entries());
+}
+
+function setHeaderState() {
+  if (!header) return;
+  header.classList.toggle("is-scrolled", window.scrollY > 12);
+}
+
+async function getSiteContent() {
+  if (!db) return defaultContent;
+  const { data, error } = await db.from("site_content").select("key,value");
+  if (error || !data) return defaultContent;
+  return {
+    ...defaultContent,
+    ...Object.fromEntries(data.map((row) => [row.key, row.value])),
+  };
+}
+
+async function getTeamMembers(includeInactive = false) {
+  if (!db) return fallbackTeam;
+  let query = db.from("team_members").select("*").order("sort_order", { ascending: true });
+  if (!includeInactive) query = query.eq("is_active", true);
+  const { data, error } = await query;
+  if (error || !data || !data.length) return fallbackTeam;
+  return data;
+}
+
+async function getVideos(includeInactive = false) {
+  if (!db) return fallbackVideos;
+  let query = db.from("videos").select("*").order("sort_order", { ascending: true });
+  if (!includeInactive) query = query.eq("is_active", true);
+  const { data, error } = await query;
+  if (error || !data || !data.length) return fallbackVideos;
+  return data;
+}
+
+function renderContent(content) {
+  document.querySelectorAll("[data-content-field]").forEach((element) => {
+    const key = element.dataset.contentField;
+    if (content[key]) element.textContent = content[key];
   });
 }
 
-function unlockAdmin() {
-  if (!adminLogin || !adminContent || !adminVideos) return;
-  adminLogin.hidden = true;
-  adminPrivateSections.forEach((section) => {
-    section.hidden = false;
-    section.inert = false;
-    section.querySelectorAll("input, textarea, select, button").forEach((control) => {
-      control.disabled = false;
-    });
-  });
-  sessionStorage.setItem("pmgAdminUnlocked", "true");
-  renderAdminDashboard();
-  renderContentEditor();
-  renderAdminTeam();
-  renderAdminVideos();
-  renderAdminLeads();
+async function renderPublicContent() {
+  renderContent(await getSiteContent());
+}
+
+async function renderPublicTeam() {
+  if (!teamGrid) return;
+  const team = await getTeamMembers(false);
+  teamGrid.innerHTML = team
+    .map(
+      (member) => `
+        <article class="team-card reveal is-visible">
+          <div class="team-photo">
+            ${
+              member.photo_url
+                ? `<img src="${member.photo_url}" alt="${escapeText(member.name)}" />`
+                : `<div class="team-photo-placeholder" aria-label="${escapeText(member.name)} photo placeholder">${initials(member.name)}</div>`
+            }
+          </div>
+          <div>
+            <p class="team-role">${escapeText(member.title)}</p>
+            <h3>${escapeText(member.name)}</h3>
+            <a href="tel:${String(member.phone || "").replace(/\s/g, "")}">${escapeText(member.phone)}</a>
+            <a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+async function renderPublicVideos() {
+  if (!videoGrid) return;
+  const videos = await getVideos(false);
+  videoGrid.innerHTML = videos
+    .map(
+      (video, index) => `
+        <article class="video-card reveal is-visible">
+          <video src="${video.video_url}" controls playsinline preload="metadata"></video>
+          <div class="video-card-content">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <h3>${escapeText(video.title || "PMG Promotion Video")}</h3>
+            <p>${escapeText(video.description || "Premium Management Group agency promotion.")}</p>
+          </div>
+        </article>
+      `
+    )
+    .join("");
 }
 
 function lockAdmin() {
@@ -211,40 +192,59 @@ function lockAdmin() {
       control.disabled = true;
     });
   });
-  sessionStorage.removeItem("pmgAdminUnlocked");
 }
 
-function renderAdminDashboard() {
-  const team = readJson(teamKey, defaultTeam);
-  const videos = readJson(videoKey, []);
-  const leads = readJson(leadsKey, []);
-  const teamCount = document.querySelector("#teamCount");
-  const videoCount = document.querySelector("#videoCount");
-  const leadCount = document.querySelector("#leadCount");
-  if (teamCount) teamCount.textContent = String(team.length);
-  if (videoCount) videoCount.textContent = String(videos.length);
-  if (leadCount) leadCount.textContent = String(leads.length);
+async function unlockAdmin() {
+  if (!adminLogin) return;
+  adminLogin.hidden = true;
+  adminPrivateSections.forEach((section) => {
+    section.hidden = false;
+    section.inert = false;
+    section.querySelectorAll("input, textarea, select, button").forEach((control) => {
+      control.disabled = false;
+    });
+  });
+  await renderAdminDashboard();
+  await renderContentEditor();
+  await renderAdminTeam();
+  await renderAdminVideos();
+  await renderAdminLeads();
+  await renderAdminEnquiries();
+  await renderAdminApplications();
 }
 
-function renderContentEditor() {
+async function renderAdminDashboard() {
+  const team = await getTeamMembers(true);
+  const videos = await getVideos(true);
+  const leads = await getPromotionLeads();
+  const enquiries = await getEnquiries();
+  const applications = await getApplications();
+  document.querySelector("#teamCount") && (document.querySelector("#teamCount").textContent = String(team.length));
+  document.querySelector("#videoCount") && (document.querySelector("#videoCount").textContent = String(videos.length));
+  document.querySelector("#leadCount") && (document.querySelector("#leadCount").textContent = String(leads.length));
+  document.querySelector("#enquiryCount") && (document.querySelector("#enquiryCount").textContent = String(enquiries.length));
+  document.querySelector("#applicationCount") && (document.querySelector("#applicationCount").textContent = String(applications.length));
+}
+
+async function renderContentEditor() {
   if (!contentEditorForm) return;
-  const content = siteContent();
+  const content = await getSiteContent();
   Object.entries(content).forEach(([key, value]) => {
     if (contentEditorForm.elements[key]) contentEditorForm.elements[key].value = value;
   });
 }
 
-function renderAdminTeam() {
+async function renderAdminTeam() {
   if (!adminTeamList) return;
-  const team = readJson(teamKey, defaultTeam);
+  const team = await getTeamMembers(true);
   adminTeamList.innerHTML = team
     .map(
-      (member, index) => `
+      (member) => `
         <article class="admin-card">
           <div class="team-photo">
             ${
-              member.photo
-                ? `<img src="${member.photo}" alt="${escapeText(member.name)}" />`
+              member.photo_url
+                ? `<img src="${member.photo_url}" alt="${escapeText(member.name)}" />`
                 : `<div class="team-photo-placeholder">${initials(member.name)}</div>`
             }
           </div>
@@ -252,8 +252,8 @@ function renderAdminTeam() {
           <p class="team-role">${escapeText(member.title)}</p>
           <p class="admin-muted">${escapeText(member.phone)}<br />${escapeText(member.email)}</p>
           <div class="admin-actions">
-            <button class="button secondary" type="button" data-edit-team="${index}">Edit</button>
-            <button class="button secondary" type="button" data-delete-team="${index}">Delete</button>
+            <button class="button secondary" type="button" data-edit-team="${member.id}">Edit</button>
+            <button class="button secondary" type="button" data-delete-team="${member.id}">Delete</button>
           </div>
         </article>
       `
@@ -261,20 +261,20 @@ function renderAdminTeam() {
     .join("");
 }
 
-function renderAdminVideos() {
+async function renderAdminVideos() {
   if (!adminVideoList) return;
-  const videos = readJson(videoKey, []);
+  const videos = await getVideos(true);
   adminVideoList.innerHTML = videos.length
     ? videos
         .map(
-          (video, index) => `
+          (video) => `
             <article class="admin-card">
-              <video src="${video.src}" controls playsinline preload="metadata"></video>
+              <video src="${video.video_url}" controls playsinline preload="metadata"></video>
               <h3>${escapeText(video.title || "PMG Promotion Video")}</h3>
               <p class="admin-muted">${escapeText(video.description || "")}</p>
               <div class="admin-actions">
-                <button class="button secondary" type="button" data-edit-video="${index}">Edit</button>
-                <button class="button secondary" type="button" data-delete-video="${index}">Delete</button>
+                <button class="button secondary" type="button" data-edit-video="${video.id}">Edit</button>
+                <button class="button secondary" type="button" data-delete-video="${video.id}">Delete</button>
               </div>
             </article>
           `
@@ -283,18 +283,32 @@ function renderAdminVideos() {
     : `<p class="admin-muted">No videos uploaded yet.</p>`;
 }
 
-function renderAdminLeads() {
+async function getPromotionLeads() {
+  if (!db) return [];
+  const { data, error } = await db.from("promotion_leads").select("*").order("created_at", { ascending: false });
+  return error || !data ? [] : data;
+}
+
+async function getEnquiries() {
+  if (!db) return [];
+  const { data, error } = await db.from("enquiries").select("*").order("created_at", { ascending: false });
+  return error || !data ? [] : data;
+}
+
+async function getApplications() {
+  if (!db) return [];
+  const { data, error } = await db.from("tenant_applications").select("*").order("created_at", { ascending: false });
+  return error || !data ? [] : data;
+}
+
+async function renderAdminLeads() {
   if (!adminLeadsList) return;
-  const leads = readJson(leadsKey, []);
+  const leads = await getPromotionLeads();
   adminLeadsList.innerHTML = leads.length
     ? `
       <div class="admin-table">
         <div class="admin-table-row admin-table-head">
-          <span>Name</span>
-          <span>Email</span>
-          <span>Phone</span>
-          <span>Code</span>
-          <span>Date</span>
+          <span>Name</span><span>Email</span><span>Phone</span><span>Code</span><span>Date</span>
         </div>
         ${leads
           .map(
@@ -304,7 +318,7 @@ function renderAdminLeads() {
                 <span>${escapeText(lead.email)}</span>
                 <span>${escapeText(lead.phone)}</span>
                 <span>${escapeText(lead.code)}</span>
-                <span>${escapeText(lead.createdAt)}</span>
+                <span>${escapeText(new Date(lead.created_at).toLocaleString())}</span>
               </div>
             `
           )
@@ -314,9 +328,79 @@ function renderAdminLeads() {
     : `<p class="admin-muted">No promotion leads recorded yet.</p>`;
 }
 
-function setHeaderState() {
-  if (!header) return;
-  header.classList.toggle("is-scrolled", window.scrollY > 12);
+async function renderAdminEnquiries() {
+  if (!adminEnquiriesList) return;
+  const enquiries = await getEnquiries();
+  adminEnquiriesList.innerHTML = enquiries.length
+    ? `
+      <div class="admin-table">
+        <div class="admin-table-row admin-table-head">
+          <span>Name</span><span>Email</span><span>Phone</span><span>Property</span><span>Date</span>
+        </div>
+        ${enquiries
+          .map(
+            (item) => `
+              <div class="admin-table-row">
+                <span>${escapeText(item.name)}</span>
+                <span>${escapeText(item.email)}</span>
+                <span>${escapeText(item.phone)}</span>
+                <span>${escapeText(item.property_address)}</span>
+                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : `<p class="admin-muted">No website enquiries recorded yet.</p>`;
+}
+
+async function renderAdminApplications() {
+  if (!adminApplicationsList) return;
+  const applications = await getApplications();
+  adminApplicationsList.innerHTML = applications.length
+    ? `
+      <div class="admin-table">
+        <div class="admin-table-row admin-table-head">
+          <span>Name</span><span>Email</span><span>Phone</span><span>Address</span><span>Date</span>
+        </div>
+        ${applications
+          .map(
+            (item) => `
+              <div class="admin-table-row">
+                <span>${escapeText(item.applicant_name)}</span>
+                <span>${escapeText(item.email)}</span>
+                <span>${escapeText(item.phone)}</span>
+                <span>${escapeText(item.property_address)}</span>
+                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : `<p class="admin-muted">No tenant applications recorded yet.</p>`;
+}
+
+async function uploadPublicFile(bucket, file) {
+  const ext = file.name.split(".").pop();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  let { error } = await db.storage.from(bucket).upload(path, file, { upsert: true });
+  let targetBucket = bucket;
+  if (error && bucket === "team-photos") {
+    targetBucket = "Team Photos";
+    ({ error } = await db.storage.from(targetBucket).upload(path, file, { upsert: true }));
+  }
+  if (error) throw error;
+  return db.storage.from(targetBucket).getPublicUrl(path).data.publicUrl;
+}
+
+function composeMail(subject, fields) {
+  const body = Object.entries(fields)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("\n");
+  window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 function openPromoModal() {
@@ -336,18 +420,6 @@ function closePromoModal() {
   document.body.classList.remove("modal-open");
 }
 
-function composeMail(subject, fields) {
-  const body = Object.entries(fields)
-    .filter(([, value]) => value)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join("\n");
-  window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-function formValues(form) {
-  return Object.fromEntries(new FormData(form).entries());
-}
-
 menuToggle?.addEventListener("click", () => {
   const open = menuToggle.classList.toggle("is-open");
   mobileNav?.classList.toggle("is-open", open);
@@ -364,18 +436,28 @@ mobileNav?.querySelectorAll("a").forEach((link) => {
 
 promoButtons.forEach((button) => button.addEventListener("click", openPromoModal));
 closePromoButtons.forEach((button) => button.addEventListener("click", closePromoModal));
+promoModal?.addEventListener("click", (event) => event.target === promoModal && closePromoModal());
+document.addEventListener("keydown", (event) => event.key === "Escape" && closePromoModal());
 
-promoModal?.addEventListener("click", (event) => {
-  if (event.target === promoModal) closePromoModal();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closePromoModal();
-});
-
-contactForm?.addEventListener("submit", (event) => {
+contactForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(contactForm);
+  if (db) {
+    const { error } = await db.from("enquiries").insert({
+      name: values.name,
+      phone: values.phone,
+      email: values.email,
+      property_address: values.property,
+      message: values.message,
+    });
+    if (!error) {
+      alert("Thank you. Your enquiry has been submitted.");
+      contactForm.reset();
+      await renderAdminDashboard();
+      await renderAdminEnquiries();
+      return;
+    }
+  }
   composeMail("PMG Property Management Enquiry", {
     Name: values.name,
     Phone: values.phone,
@@ -385,122 +467,132 @@ contactForm?.addEventListener("submit", (event) => {
   });
 });
 
-promoLeadForm?.addEventListener("submit", (event) => {
+promoLeadForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(promoLeadForm);
-  const leads = readJson(leadsKey, []);
-  leads.unshift({
-    name: values.name,
-    email: values.email,
-    phone: values.phone,
-    code: fixedPromoCode,
-    createdAt: new Date().toLocaleString(),
-  });
-  writeJson(leadsKey, leads);
+  if (db) {
+    await db.from("promotion_leads").insert({
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      code: fixedPromoCode,
+    });
+  }
   generatedCode.textContent = fixedPromoCode;
   promoLeadForm.hidden = true;
+  promoLeadForm.reset();
   if (promoCodePanel) promoCodePanel.hidden = false;
-  renderAdminDashboard();
-  renderAdminLeads();
+  await renderAdminDashboard();
+  await renderAdminLeads();
 });
 
-applicationForm?.addEventListener("submit", (event) => {
+applicationForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(applicationForm);
-  composeMail("PMG Tenant Application Enquiry", {
-    Name: values.name,
-    Phone: values.phone,
-    Email: values.email,
-    "Property Address": values.property,
-    "Preferred Move-in Date": values.moveDate,
-    "Number of Occupants": values.occupants,
-    Message: values.message,
-  });
-});
-
-migrateRachelPhoto();
-renderPublicContent();
-renderPublicTeam();
-renderPublicVideos();
-
-lockAdmin();
-
-if (sessionStorage.getItem("pmgAdminUnlocked") === "true") {
-  unlockAdmin();
-}
-
-adminLoginForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const values = formValues(adminLoginForm);
-  if (values.passcode === adminPasscode) {
-    unlockAdmin();
-  } else {
-    alert("Incorrect admin passcode.");
+  if (db) {
+    await db.from("tenant_applications").insert({
+      applicant_name: values.name,
+      phone: values.phone,
+      email: values.email,
+      property_address: values.property,
+      data: values,
+    });
+    alert("Thank you. Your application enquiry has been submitted.");
+    applicationForm.reset();
+    await renderAdminDashboard();
+    await renderAdminApplications();
+    return;
   }
+  composeMail("PMG Tenant Application Enquiry", values);
 });
 
-contentEditorForm?.addEventListener("submit", (event) => {
+adminLoginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!db) {
+    alert("Supabase client is unavailable.");
+    return;
+  }
+  const values = formValues(adminLoginForm);
+  const { error } = await db.auth.signInWithPassword({ email: values.email, password: values.password });
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await unlockAdmin();
+});
+
+document.querySelector("#adminLogout")?.addEventListener("click", async () => {
+  if (db) await db.auth.signOut();
+  lockAdmin();
+});
+
+contentEditorForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(contentEditorForm);
-  writeJson(contentKey, { ...defaultContent, ...values });
-  renderContentEditor();
+  const rows = Object.entries({ ...defaultContent, ...values }).map(([key, value]) => ({ key, value }));
+  const { error } = await db.from("site_content").upsert(rows, { onConflict: "key" });
+  if (error) {
+    alert(error.message);
+    return;
+  }
   alert("Website content saved.");
+  await renderPublicContent();
 });
 
-document.querySelector("#resetContent")?.addEventListener("click", () => {
-  writeJson(contentKey, defaultContent);
-  renderContentEditor();
+document.querySelector("#resetContent")?.addEventListener("click", async () => {
+  const rows = Object.entries(defaultContent).map(([key, value]) => ({ key, value }));
+  await db.from("site_content").upsert(rows, { onConflict: "key" });
+  await renderContentEditor();
+  await renderPublicContent();
 });
 
-adminTeamList?.addEventListener("click", (event) => {
+adminTeamList?.addEventListener("click", async (event) => {
   const editButton = event.target.closest("[data-edit-team]");
   const deleteButton = event.target.closest("[data-delete-team]");
-  const team = readJson(teamKey, defaultTeam);
-
   if (editButton && teamEditorForm) {
-    const member = team[Number(editButton.dataset.editTeam)];
-    teamEditorForm.elements.index.value = editButton.dataset.editTeam;
+    const team = await getTeamMembers(true);
+    const member = team.find((item) => item.id === editButton.dataset.editTeam);
+    if (!member) return;
+    teamEditorForm.elements.index.value = member.id;
     teamEditorForm.elements.name.value = member.name;
     teamEditorForm.elements.title.value = member.title;
-    teamEditorForm.elements.phone.value = member.phone;
-    teamEditorForm.elements.email.value = member.email;
+    teamEditorForm.elements.phone.value = member.phone || "";
+    teamEditorForm.elements.email.value = member.email || "";
   }
-
   if (deleteButton) {
-    team.splice(Number(deleteButton.dataset.deleteTeam), 1);
-    writeJson(teamKey, team);
-    renderAdminTeam();
-    renderAdminDashboard();
-    renderPublicTeam();
+    await db.from("team_members").delete().eq("id", deleteButton.dataset.deleteTeam);
+    await renderAdminTeam();
+    await renderAdminDashboard();
+    await renderPublicTeam();
   }
 });
 
 teamEditorForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(teamEditorForm);
-  const team = readJson(teamKey, defaultTeam);
-  const existing = values.index !== "" ? team[Number(values.index)] : {};
-  const photo = await fileToDataUrl(teamEditorForm.elements.photo.files[0]);
-  const member = {
+  const id = values.index;
+  let photoUrl = "";
+  const file = teamEditorForm.elements.photo.files[0];
+  if (file) photoUrl = await uploadPublicFile("team-photos", file);
+  const row = {
     name: values.name,
     title: values.title,
     phone: values.phone,
     email: values.email,
-    photo: photo || existing.photo || "",
+    is_active: true,
   };
-
-  if (values.index !== "") {
-    team[Number(values.index)] = member;
+  if (photoUrl) row.photo_url = photoUrl;
+  if (id) {
+    await db.from("team_members").update(row).eq("id", id);
   } else {
-    team.push(member);
+    row.sort_order = (await getTeamMembers(true)).length + 1;
+    await db.from("team_members").insert(row);
   }
-
-  writeJson(teamKey, team);
   teamEditorForm.reset();
   teamEditorForm.elements.index.value = "";
-  renderAdminTeam();
-  renderAdminDashboard();
-  renderPublicTeam();
+  await renderAdminTeam();
+  await renderAdminDashboard();
+  await renderPublicTeam();
 });
 
 document.querySelector("#newTeamMember")?.addEventListener("click", () => {
@@ -508,67 +600,57 @@ document.querySelector("#newTeamMember")?.addEventListener("click", () => {
   if (teamEditorForm) teamEditorForm.elements.index.value = "";
 });
 
-document.querySelector("#adminLogout")?.addEventListener("click", () => {
-  lockAdmin();
+document.querySelector("#resetTeam")?.addEventListener("click", async () => {
+  alert("Default team reset is disabled for the live database. Please edit members directly.");
 });
 
-document.querySelector("#resetTeam")?.addEventListener("click", () => {
-  writeJson(teamKey, defaultTeam);
-  renderAdminTeam();
-  renderAdminDashboard();
-  renderPublicTeam();
-  teamEditorForm?.reset();
-});
-
-adminVideoList?.addEventListener("click", (event) => {
+adminVideoList?.addEventListener("click", async (event) => {
   const editButton = event.target.closest("[data-edit-video]");
   const deleteButton = event.target.closest("[data-delete-video]");
-  const videos = readJson(videoKey, []);
-
   if (editButton && videoEditorForm) {
-    const video = videos[Number(editButton.dataset.editVideo)];
-    videoEditorForm.elements.index.value = editButton.dataset.editVideo;
+    const videos = await getVideos(true);
+    const video = videos.find((item) => item.id === editButton.dataset.editVideo);
+    if (!video) return;
+    videoEditorForm.elements.index.value = video.id;
     videoEditorForm.elements.title.value = video.title;
-    videoEditorForm.elements.description.value = video.description;
+    videoEditorForm.elements.description.value = video.description || "";
   }
-
   if (deleteButton) {
-    videos.splice(Number(deleteButton.dataset.deleteVideo), 1);
-    writeJson(videoKey, videos);
-    renderAdminVideos();
-    renderAdminDashboard();
+    await db.from("videos").delete().eq("id", deleteButton.dataset.deleteVideo);
+    await renderAdminVideos();
+    await renderAdminDashboard();
+    await renderPublicVideos();
   }
 });
 
 videoEditorForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const values = formValues(videoEditorForm);
-  const videos = readJson(videoKey, []);
-  const existing = values.index !== "" ? videos[Number(values.index)] : {};
-  const src = await fileToDataUrl(videoEditorForm.elements.video.files[0]);
-
-  if (!src && !existing.src) {
-    alert("Please upload a video file.");
-    return;
-  }
-
-  const video = {
+  const id = values.index;
+  let videoUrl = "";
+  const file = videoEditorForm.elements.video.files[0];
+  if (file) videoUrl = await uploadPublicFile("promotion-videos", file);
+  const row = {
     title: values.title,
     description: values.description,
-    src: src || existing.src,
+    is_active: true,
   };
-
-  if (values.index !== "") {
-    videos[Number(values.index)] = video;
+  if (videoUrl) row.video_url = videoUrl;
+  if (id) {
+    await db.from("videos").update(row).eq("id", id);
   } else {
-    videos.push(video);
+    if (!videoUrl) {
+      alert("Please upload a video file.");
+      return;
+    }
+    row.sort_order = (await getVideos(true)).length + 1;
+    await db.from("videos").insert(row);
   }
-
-  writeJson(videoKey, videos);
   videoEditorForm.reset();
   videoEditorForm.elements.index.value = "";
-  renderAdminVideos();
-  renderAdminDashboard();
+  await renderAdminVideos();
+  await renderAdminDashboard();
+  await renderPublicVideos();
 });
 
 document.querySelector("#newVideo")?.addEventListener("click", () => {
@@ -576,25 +658,21 @@ document.querySelector("#newVideo")?.addEventListener("click", () => {
   if (videoEditorForm) videoEditorForm.elements.index.value = "";
 });
 
-document.querySelector("#clearVideos")?.addEventListener("click", () => {
-  writeJson(videoKey, []);
-  renderAdminVideos();
-  renderAdminDashboard();
-  videoEditorForm?.reset();
+document.querySelector("#clearVideos")?.addEventListener("click", async () => {
+  await db.from("videos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await renderAdminVideos();
+  await renderAdminDashboard();
+  await renderPublicVideos();
 });
 
-document.querySelector("#clearLeads")?.addEventListener("click", () => {
-  writeJson(leadsKey, []);
-  renderAdminLeads();
-  renderAdminDashboard();
+document.querySelector("#clearLeads")?.addEventListener("click", async () => {
+  alert("Lead deletion requires an additional delete policy. Export leads before deleting.");
 });
 
-document.querySelector("#exportLeads")?.addEventListener("click", () => {
-  const leads = readJson(leadsKey, []);
-  const rows = [["Name", "Email", "Phone", "Code", "Date"], ...leads.map((lead) => [lead.name, lead.email, lead.phone, lead.code, lead.createdAt])];
-  const csv = rows
-    .map((row) => row.map((cell) => `"${String(cell || "").replace(/"/g, '""')}"`).join(","))
-    .join("\n");
+document.querySelector("#exportLeads")?.addEventListener("click", async () => {
+  const leads = await getPromotionLeads();
+  const rows = [["Name", "Email", "Phone", "Code", "Date"], ...leads.map((lead) => [lead.name, lead.email, lead.phone, lead.code, lead.created_at])];
+  const csv = rows.map((row) => row.map((cell) => `"${String(cell || "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -617,10 +695,19 @@ const observer = new IntersectionObserver(
 );
 
 document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
-
 window.addEventListener("scroll", setHeaderState, { passive: true });
 setHeaderState();
 
-if (window.location.hash === "#promotion" || new URLSearchParams(window.location.search).get("promo") === "scan") {
-  setTimeout(openPromoModal, 450);
-}
+(async function init() {
+  await renderPublicContent();
+  await renderPublicTeam();
+  await renderPublicVideos();
+  lockAdmin();
+  if (db) {
+    const { data } = await db.auth.getSession();
+    if (data.session) await unlockAdmin();
+  }
+  if (window.location.hash === "#promotion" || new URLSearchParams(window.location.search).get("promo") === "scan") {
+    setTimeout(openPromoModal, 450);
+  }
+})();

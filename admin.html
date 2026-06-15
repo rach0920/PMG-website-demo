@@ -29,12 +29,16 @@
         <div>
           <p class="section-kicker">Admin Access</p>
           <h1>PMG Website Admin</h1>
-          <p class="admin-muted">Enter the admin passcode to manage homepage content, team members and promotion videos.</p>
+          <p class="admin-muted">Sign in with your Supabase admin email to manage homepage content, team members and promotion videos.</p>
         </div>
         <form class="admin-form" id="adminLoginForm">
-          <label class="full">
-            Passcode
-            <input type="password" name="passcode" autocomplete="current-password" required />
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" autocomplete="current-password" required />
           </label>
           <button class="button primary full" type="submit">Access Admin</button>
           <button class="button secondary full" type="button" id="adminLogout">Logout</button>
@@ -63,13 +67,20 @@
             <p>Promotion Leads</p>
           </article>
           <article>
-            <span>Demo</span>
-            <p>Local Admin Storage</p>
+            <span id="enquiryCount">0</span>
+            <p>Enquiries</p>
+          </article>
+          <article>
+            <span id="applicationCount">0</span>
+            <p>Applications</p>
+          </article>
+          <article>
+            <span>Live</span>
+            <p>Supabase Backend</p>
           </article>
         </div>
         <p class="admin-muted">
-          Note: this demo admin stores changes in this browser. A production backend will need a secure login,
-          database and media storage.
+          This admin connects to Supabase Auth, Database and Storage. Changes saved here update the live website.
         </p>
         <div class="admin-actions">
           <a class="button secondary" href="index.html#team">View Team Section</a>
@@ -126,7 +137,7 @@
         <div>
           <p class="section-kicker">Editable Content</p>
           <h2>Leadership Team</h2>
-          <p class="admin-muted">Add, edit, remove and upload photos for team members. Changes are stored locally in this browser.</p>
+          <p class="admin-muted">Add, edit, remove and upload photos for team members. Changes are stored in Supabase.</p>
         </div>
 
         <div class="admin-grid" id="adminTeamList"></div>
@@ -206,8 +217,27 @@
           <button class="button secondary" type="button" id="clearLeads">Clear Leads</button>
         </div>
       </section>
+
+      <section id="adminEnquiries" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Website Enquiries</p>
+          <h2>Contact Form Submissions</h2>
+          <p class="admin-muted">View people who submitted the website contact form.</p>
+        </div>
+        <div class="admin-leads-list" id="adminEnquiriesList"></div>
+      </section>
+
+      <section id="adminApplications" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Tenant Applications</p>
+          <h2>Online Application Submissions</h2>
+          <p class="admin-muted">View applications submitted through the tenant application pages.</p>
+        </div>
+        <div class="admin-leads-list" id="adminApplicationsList"></div>
+      </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
