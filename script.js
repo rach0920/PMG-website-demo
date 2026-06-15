@@ -140,7 +140,7 @@ async function getVideos(includeInactive = false) {
   if (!includeInactive) query = query.eq("is_active", true);
   const { data, error } = await query;
   if (includeInactive) return error || !data ? [] : data;
-  if (error || !data || !data.length) return fallbackVideos;
+  if (error || !data) return fallbackVideos;
   return data;
 }
 
@@ -184,6 +184,10 @@ async function renderPublicTeam() {
 async function renderPublicVideos() {
   if (!videoGrid) return;
   const videos = await getVideos(false);
+  if (!videos.length) {
+    videoGrid.innerHTML = "";
+    return;
+  }
   videoGrid.innerHTML = videos
     .map(
       (video, index) => `
