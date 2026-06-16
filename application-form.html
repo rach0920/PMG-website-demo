@@ -345,6 +345,12 @@
             display: none !important;
         }
 
+        body.pdf-capture-mode section,
+        body.pdf-capture-mode header {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -1133,39 +1139,69 @@
 
             syncFormValuesForPdf();
             document.body.classList.add('pdf-capture-mode');
-            const source = document.querySelector('.container');
-
-            let canvas;
-            try {
-                canvas = await html2canvas(source, {
-                    scale: 1,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    windowWidth: source.scrollWidth,
-                    windowHeight: source.scrollHeight
-                });
-            } finally {
-                document.body.classList.remove('pdf-capture-mode');
-            }
-
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pageWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            const imageData = canvas.toDataURL('image/jpeg', 0.72);
+            const margin = 8;
+            const contentWidth = pageWidth - margin * 2;
+            const pageBottom = pageHeight - margin;
+            const blocks = [
+                document.querySelector('.container > header'),
+                ...document.querySelectorAll('#tenancyForm > section:not(.submit-section)')
+            ].filter(Boolean);
 
-            let heightLeft = imgHeight;
-            let position = 0;
-            pdf.addImage(imageData, 'JPEG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+            let y = margin;
+            let hasContent = false;
 
-            while (heightLeft > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imageData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+            try {
+                for (const block of blocks) {
+                    const canvas = await html2canvas(block, {
+                        scale: 1.2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        windowWidth: block.scrollWidth,
+                        windowHeight: block.scrollHeight
+                    });
+                    const imageData = canvas.toDataURL('image/jpeg', 0.82);
+                    const blockHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    if (hasContent && y + blockHeight > pageBottom) {
+                        pdf.addPage();
+                        y = margin;
+                    }
+
+                    if (blockHeight <= pageHeight - margin * 2) {
+                        pdf.addImage(imageData, 'JPEG', margin, y, contentWidth, blockHeight);
+                        y += blockHeight + 5;
+                    } else {
+                        const sliceCanvas = document.createElement('canvas');
+                        const sliceCtx = sliceCanvas.getContext('2d');
+                        const pxPerMm = canvas.width / contentWidth;
+                        const maxSliceHeightPx = Math.floor((pageHeight - margin * 2) * pxPerMm);
+                        let sourceY = 0;
+                        while (sourceY < canvas.height) {
+                            if (hasContent && y !== margin) {
+                                pdf.addPage();
+                                y = margin;
+                            }
+                            const sliceHeightPx = Math.min(maxSliceHeightPx, canvas.height - sourceY);
+                            sliceCanvas.width = canvas.width;
+                            sliceCanvas.height = sliceHeightPx;
+                            sliceCtx.clearRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+                            sliceCtx.drawImage(canvas, 0, sourceY, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+                            const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.82);
+                            const sliceHeightMm = (sliceHeightPx * contentWidth) / canvas.width;
+                            pdf.addImage(sliceData, 'JPEG', margin, y, contentWidth, sliceHeightMm);
+                            sourceY += sliceHeightPx;
+                            y = margin + sliceHeightMm + 5;
+                            hasContent = true;
+                        }
+                    }
+                    hasContent = true;
+                }
+            } finally {
+                document.body.classList.remove('pdf-capture-mode');
             }
 
             return pdf.output('datauristring').split(',')[1];
@@ -1845,8 +1881,6 @@
                     Email: data.email || '',
                     'Current Address': data.currentAddress || '',
                     'Submitted At': data.submittedAt || '',
-                    'Completed Application Form': data,
-                    'Uploaded Files': data.uploadedFiles || [],
                     _attachments: applicationAttachments
                 });
             } catch (emailError) {
