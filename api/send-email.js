@@ -19,7 +19,7 @@ function escapeHtml(value) {
 
 function rowsFromObject(data) {
   return Object.entries(data || {})
-    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .filter(([key, value]) => key !== "_attachments" && value !== undefined && value !== null && value !== "")
     .map(([key, value]) => {
       const displayValue = typeof value === "object" ? JSON.stringify(value, null, 2) : value;
       return `
@@ -58,6 +58,16 @@ function getReplyTo(payload) {
   return payload?.Email || payload?.email || payload?.["Email Address"] || undefined;
 }
 
+function getAttachments(payload) {
+  if (!Array.isArray(payload?._attachments)) return [];
+  return payload._attachments
+    .filter((file) => file?.filename && file?.content)
+    .map((file) => ({
+      filename: file.filename,
+      content: file.content,
+    }));
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -73,6 +83,7 @@ export default async function handler(req, res) {
     const { type, payload } = req.body || {};
     const { subject, html } = buildEmail(type, payload);
     const replyTo = getReplyTo(payload);
+    const attachments = getAttachments(payload);
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -84,6 +95,7 @@ export default async function handler(req, res) {
         from: fromEmail,
         to: type === "application" ? applicationRecipients : recipients,
         ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(attachments.length ? { attachments } : {}),
         subject,
         html,
       }),

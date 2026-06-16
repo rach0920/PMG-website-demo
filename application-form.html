@@ -1055,15 +1055,79 @@
         const applicationDb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function sendEmailNotification(type, payload) {
-            try {
-                await fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, payload })
-                });
-            } catch (error) {
-                console.warn('Email notification failed', error);
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, payload })
+            });
+            if (!response.ok) {
+                let message = 'Email notification failed';
+                try {
+                    const result = await response.json();
+                    message = result.error || result.message || JSON.stringify(result);
+                } catch {
+                    message = await response.text();
+                }
+                throw new Error(message);
             }
+        }
+
+        function textToBase64(text) {
+            return btoa(unescape(encodeURIComponent(text)));
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result).split(',')[1]);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function buildApplicationText(data) {
+            return Object.entries(data)
+                .filter(([key]) => key !== 'uploadedFiles')
+                .map(([key, value]) => {
+                    const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
+                    return `${key}: ${displayValue}`;
+                })
+                .join('\n\n');
+        }
+
+        async function collectApplicationEmailAttachments(data) {
+            const attachments = [
+                {
+                    filename: `PMG-completed-application-${Date.now()}.txt`,
+                    content: textToBase64(buildApplicationText(data))
+                }
+            ];
+            const files = [];
+            const seen = new Set();
+
+            document.querySelectorAll('#tenancyForm input[type="file"]').forEach((input) => {
+                Array.from(input.files || []).forEach((file) => {
+                    const key = `${file.name}-${file.size}-${file.lastModified}`;
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    files.push(file);
+                });
+            });
+
+            const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+            const maxTotalSize = 3 * 1024 * 1024;
+            if (totalSize > maxTotalSize) {
+                throw new Error('Uploaded supporting documents are too large to email directly. Please reduce the total file size to under 3 MB and try again.');
+            }
+
+            for (const file of files) {
+                attachments.push({
+                    filename: file.name,
+                    content: await fileToBase64(file)
+                });
+            }
+
+            return attachments;
         }
 
         // Track number of items
@@ -1698,16 +1762,24 @@
             }
 
             try {
+                const applicationAttachments = await collectApplicationEmailAttachments(data);
                 await sendEmailNotification('application', {
                     Name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
                     Phone: data.phone || '',
                     Email: data.email || '',
                     'Current Address': data.currentAddress || '',
                     'Submitted At': data.submittedAt || '',
-                    'Uploaded Files': data.uploadedFiles || []
+                    'Completed Application Form': data,
+                    'Uploaded Files': data.uploadedFiles || [],
+                    _attachments: applicationAttachments
                 });
             } catch (emailError) {
-                console.warn('Application email notification failed', emailError);
+                alert(`Your application was saved, but the email with attachments could not be sent. ${emailError.message}`);
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'âœ“ SUBMIT APPLICATION';
+                }
+                return;
             }
 
             document.getElementById('tenancyForm').reset();
