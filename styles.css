@@ -126,6 +126,12 @@ textarea {
   color: var(--white);
 }
 
+.button.compact {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
 .nav-cta:hover,
 .button:hover {
   transform: translateY(-2px);

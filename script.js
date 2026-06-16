@@ -359,7 +359,7 @@ async function renderAdminEnquiries() {
     ? `
       <div class="admin-table">
         <div class="admin-table-row admin-table-head">
-          <span>Name</span><span>Email</span><span>Phone</span><span>Property</span><span>Date</span>
+          <span>Name</span><span>Email</span><span>Phone</span><span>Property</span><span>Action</span>
         </div>
         ${enquiries
           .map(
@@ -369,7 +369,7 @@ async function renderAdminEnquiries() {
                 <span>${escapeText(item.email)}</span>
                 <span>${escapeText(item.phone)}</span>
                 <span>${escapeText(item.property_address)}</span>
-                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
+                <span><button class="button secondary compact" type="button" data-delete-enquiry="${item.id}">Delete</button></span>
               </div>
             `
           )
@@ -386,7 +386,7 @@ async function renderAdminApplications() {
     ? `
       <div class="admin-table">
         <div class="admin-table-row admin-table-head">
-          <span>Name</span><span>Email</span><span>Phone</span><span>Address</span><span>Date</span>
+          <span>Name</span><span>Email</span><span>Phone</span><span>Address</span><span>Action</span>
         </div>
         ${applications
           .map(
@@ -396,7 +396,7 @@ async function renderAdminApplications() {
                 <span>${escapeText(item.email)}</span>
                 <span>${escapeText(item.phone)}</span>
                 <span>${escapeText(item.property_address)}</span>
-                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
+                <span><button class="button secondary compact" type="button" data-delete-application="${item.id}">Delete</button></span>
               </div>
             `
           )
@@ -751,6 +751,54 @@ document.querySelector("#clearVideos")?.addEventListener("click", async () => {
 
 document.querySelector("#clearLeads")?.addEventListener("click", async () => {
   alert("Lead deletion requires an additional delete policy. Export leads before deleting.");
+});
+
+adminEnquiriesList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete-enquiry]");
+  if (!button) return;
+  if (!confirm("Delete this website enquiry record?")) return;
+  const { error } = await db.from("enquiries").delete().eq("id", button.dataset.deleteEnquiry);
+  if (error) {
+    alert(`Enquiry could not be deleted: ${error.message}`);
+    return;
+  }
+  await renderAdminEnquiries();
+  await renderAdminDashboard();
+});
+
+document.querySelector("#clearEnquiries")?.addEventListener("click", async () => {
+  if (!confirm("Delete all website enquiry records? This cannot be undone.")) return;
+  const { error } = await db.from("enquiries").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Enquiries could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminEnquiries();
+  await renderAdminDashboard();
+});
+
+adminApplicationsList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete-application]");
+  if (!button) return;
+  if (!confirm("Delete this tenant application record?")) return;
+  const { error } = await db.from("tenant_applications").delete().eq("id", button.dataset.deleteApplication);
+  if (error) {
+    alert(`Application could not be deleted: ${error.message}`);
+    return;
+  }
+  await renderAdminApplications();
+  await renderAdminDashboard();
+});
+
+document.querySelector("#clearApplications")?.addEventListener("click", async () => {
+  if (!confirm("Delete all tenant application records? This cannot be undone.")) return;
+  const { error } = await db.from("tenant_applications").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Applications could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminApplications();
+  await renderAdminDashboard();
 });
 
 document.querySelector("#exportLeads")?.addEventListener("click", async () => {
