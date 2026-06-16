@@ -301,6 +301,39 @@
             color: #15803d;
         }
 
+        .error-summary {
+            background-color: #fef2f2;
+            border: 2px solid #dc2626;
+            border-radius: 4px;
+            color: #991b1b;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .error-summary h3 {
+            margin: 0 0 10px;
+            color: #991b1b;
+            font-size: 16px;
+        }
+
+        .error-summary ul {
+            margin: 0 0 0 20px;
+        }
+
+        .field-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+        }
+
+        .requirement-note {
+            background-color: #f8fafc;
+            border-left: 4px solid #0891b2;
+            color: #334155;
+            padding: 14px;
+            margin: 12px 0 16px;
+            font-size: 13px;
+        }
+
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -400,7 +433,8 @@
             <button class="btn-primary" onclick="downloadFormData()">⬇️ Download Data</button>
         </div>
 
-        <form id="tenancyForm">
+        <form id="tenancyForm" novalidate>
+            <div id="formErrors" class="error-summary hidden" role="alert" aria-live="polite"></div>
 
             <!-- SECTION 1: PRIMARY APPLICANT -->
             <section>
@@ -536,6 +570,21 @@
 
                 <h3 style="margin: 20px 0 15px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Rental Reference</h3>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Provide your current/previous property manager or landlord details and required supporting documents.</p>
+                <div class="checkbox-group" style="align-items: flex-start;">
+                    <input type="checkbox" id="firstTimeRenter" name="firstTimeRenter" onchange="toggleFirstTimeRenter()">
+                    <label for="firstTimeRenter" style="margin: 0; font-weight: 400;">
+                        I am a first time renter and have not previously rented a property.
+                    </label>
+                </div>
+                <div id="firstTimeRenterRequirements" class="requirement-note hidden">
+                    <strong>First time renter requirements:</strong>
+                    <p style="margin: 8px 0 0;">
+                        If you have never rented before, please provide copies of utility bills such as Water, Council,
+                        Strata, Electricity or Gas showing ownership, plus bank statements showing stable income.
+                        These documents can be selected and uploaded in the attachment/supporting documents section
+                        at the end of this form.
+                    </p>
+                </div>
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Property Manager/Landlord Name <span class="required">*</span></label>
@@ -824,6 +873,14 @@
                         <div style="margin: 0; padding: 4px 0; display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: center;">
                             <input type="checkbox" name="id_bankStatement" style="margin: 0; width: 18px; height: 18px;">
                             <span><strong>Bank Statement (20 points)</strong> - Current bank or credit card statement</span>
+                        </div>
+                        <div style="margin: 0; padding: 4px 0; display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: center;">
+                            <input type="checkbox" name="firstTimeUtilityBills" style="margin: 0; width: 18px; height: 18px;">
+                            <span><strong>First Time Renter - Utility Bills</strong> - Water, Council, Strata, Electricity or Gas bills showing ownership</span>
+                        </div>
+                        <div style="margin: 0; padding: 4px 0; display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: center;">
+                            <input type="checkbox" name="firstTimeBankStatements" style="margin: 0; width: 18px; height: 18px;">
+                            <span><strong>First Time Renter - Bank Statements</strong> - Statements showing stable income</span>
                         </div>
                         <div style="margin: 0; padding: 4px 0; display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: center;">
                             <input type="checkbox" name="id_mortgageStatement" style="margin: 0; width: 18px; height: 18px;">
@@ -1433,6 +1490,80 @@
             }
         }
 
+        function toggleFirstTimeRenter() {
+            const isFirstTimeRenter = document.getElementById('firstTimeRenter').checked;
+            document.getElementById('firstTimeRenterRequirements').classList.toggle('hidden', !isFirstTimeRenter);
+            ['rentalRefName', 'rentalRefPhone', 'rentalRefEmail'].forEach((name) => {
+                const field = document.querySelector(`[name="${name}"]`);
+                if (!field) return;
+                field.required = !isFirstTimeRenter;
+                if (isFirstTimeRenter) field.classList.remove('field-error');
+            });
+        }
+
+        function isVisibleField(field) {
+            return !!(field.offsetWidth || field.offsetHeight || field.getClientRects().length);
+        }
+
+        function fieldLabel(field) {
+            const groupLabel = field.closest('.form-group')?.querySelector('label');
+            const directLabel = field.id ? document.querySelector(`label[for="${field.id}"]`) : null;
+            const label = groupLabel || directLabel;
+            return (label?.innerText || field.name || 'Required field').replace('*', '').trim();
+        }
+
+        function showFormErrors(errors) {
+            const container = document.getElementById('formErrors');
+            if (!errors.length) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = `
+                <h3>Please complete the following before submitting:</h3>
+                <ul>${errors.map((error) => `<li>${error}</li>`).join('')}</ul>
+            `;
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function validateApplicationForm() {
+            const form = document.getElementById('tenancyForm');
+            const errors = [];
+            const invalidFields = [];
+
+            form.querySelectorAll('.field-error').forEach((field) => field.classList.remove('field-error'));
+
+            form.querySelectorAll('[required]').forEach((field) => {
+                if (!isVisibleField(field)) return;
+                const isCheckbox = field.type === 'checkbox';
+                const isFile = field.type === 'file';
+                const isEmpty = isCheckbox ? !field.checked : isFile ? field.files.length === 0 : !String(field.value || '').trim();
+
+                if (isEmpty) {
+                    errors.push(fieldLabel(field));
+                    invalidFields.push(field);
+                    field.classList.add('field-error');
+                } else if (field.type === 'email' && field.value && !field.validity.valid) {
+                    errors.push(`${fieldLabel(field)} must be a valid email address`);
+                    invalidFields.push(field);
+                    field.classList.add('field-error');
+                }
+            });
+
+            if (!signatureSaved) {
+                errors.push('E-Signature must be signed and saved');
+            }
+
+            if (invalidFields[0]) {
+                invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                invalidFields[0].focus({ preventScroll: true });
+            }
+
+            showFormErrors([...new Set(errors)]);
+            return errors.length === 0;
+        }
+
         function handleSupportingFileUpload() {
             const input = document.getElementById('supportingFileInput');
             const files = input.files;
@@ -1500,15 +1631,16 @@
         // Form submission
         document.getElementById('tenancyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (!signatureSaved) {
-                alert('Please sign the form and save your signature');
+
+            toggleFirstTimeRenter();
+            if (!validateApplicationForm()) {
                 return;
             }
 
-            if (!document.getElementById('agreeDeclaration').checked) {
-                alert('Please agree to the declaration');
-                return;
+            const submitButton = document.querySelector('#tenancyForm button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Submitting...';
             }
 
             const formData = new FormData(document.getElementById('tenancyForm'));
@@ -1541,6 +1673,10 @@
 
             if (!applicationDb) {
                 alert('The secure application service is loading. Please refresh the page and try again.');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = '✓ SUBMIT APPLICATION';
+                }
                 return;
             }
 
@@ -1554,23 +1690,36 @@
 
             if (error) {
                 alert('We could not submit the application. Please try again or contact PMG directly.');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = '✓ SUBMIT APPLICATION';
+                }
                 return;
             }
 
-            await sendEmailNotification('application', {
-                Name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-                Phone: data.phone || '',
-                Email: data.email || '',
-                'Current Address': data.currentAddress || '',
-                'Submitted At': data.submittedAt || '',
-                'Uploaded Files': data.uploadedFiles || []
-            });
+            try {
+                await sendEmailNotification('application', {
+                    Name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                    Phone: data.phone || '',
+                    Email: data.email || '',
+                    'Current Address': data.currentAddress || '',
+                    'Submitted At': data.submittedAt || '',
+                    'Uploaded Files': data.uploadedFiles || []
+                });
+            } catch (emailError) {
+                console.warn('Application email notification failed', emailError);
+            }
 
             document.getElementById('tenancyForm').reset();
             uploadedFiles = [];
             uploadedIdDocs = [];
             uploadedSupportingFiles = [];
             signatureSaved = false;
+            showFormErrors([]);
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = '✓ SUBMIT APPLICATION';
+            }
             alert('Thank you. Your application has been submitted successfully.');
         });
     </script>
