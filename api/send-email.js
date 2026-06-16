@@ -54,6 +54,10 @@ function buildEmail(type, payload) {
   return { subject, html };
 }
 
+function getReplyTo(payload) {
+  return payload?.Email || payload?.email || payload?.["Email Address"] || undefined;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -68,6 +72,7 @@ export default async function handler(req, res) {
   try {
     const { type, payload } = req.body || {};
     const { subject, html } = buildEmail(type, payload);
+    const replyTo = getReplyTo(payload);
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -78,6 +83,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from: fromEmail,
         to: type === "application" ? applicationRecipients : recipients,
+        ...(replyTo ? { reply_to: replyTo } : {}),
         subject,
         html,
       }),
