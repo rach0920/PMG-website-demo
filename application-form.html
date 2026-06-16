@@ -334,6 +334,17 @@
             font-size: 13px;
         }
 
+        body.pdf-capture-mode {
+            background: #fff;
+        }
+
+        body.pdf-capture-mode .form-actions,
+        body.pdf-capture-mode .submit-section,
+        body.pdf-capture-mode #formErrors,
+        body.pdf-capture-mode footer {
+            display: none !important;
+        }
+
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -1019,7 +1030,7 @@
             </section>
 
             <!-- SUBMIT -->
-            <section>
+            <section class="submit-section">
                 <div class="alert alert-warning">
                     <strong>Important:</strong>
                     <ul style="margin: 10px 0 0 20px;">
@@ -1049,6 +1060,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script>
         const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
@@ -1085,21 +1098,84 @@
             });
         }
 
-        function buildApplicationText(data) {
-            return Object.entries(data)
-                .filter(([key]) => key !== 'uploadedFiles')
-                .map(([key, value]) => {
-                    const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
-                    return `${key}: ${displayValue}`;
-                })
-                .join('\n\n');
+        function syncFormValuesForPdf() {
+            document.querySelectorAll('#tenancyForm input, #tenancyForm textarea, #tenancyForm select').forEach((field) => {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    if (field.checked) {
+                        field.setAttribute('checked', 'checked');
+                    } else {
+                        field.removeAttribute('checked');
+                    }
+                    return;
+                }
+                if (field.tagName === 'SELECT') {
+                    Array.from(field.options).forEach((option) => {
+                        if (option.selected) {
+                            option.setAttribute('selected', 'selected');
+                        } else {
+                            option.removeAttribute('selected');
+                        }
+                    });
+                    return;
+                }
+                if (field.tagName === 'TEXTAREA') {
+                    field.textContent = field.value;
+                } else {
+                    field.setAttribute('value', field.value);
+                }
+            });
+        }
+
+        async function generateCompletedApplicationPdf() {
+            if (!window.html2canvas || !window.jspdf?.jsPDF) {
+                throw new Error('The PDF generator is still loading. Please wait a moment and try again.');
+            }
+
+            syncFormValuesForPdf();
+            document.body.classList.add('pdf-capture-mode');
+            const source = document.querySelector('.container');
+
+            let canvas;
+            try {
+                canvas = await html2canvas(source, {
+                    scale: 1,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    windowWidth: source.scrollWidth,
+                    windowHeight: source.scrollHeight
+                });
+            } finally {
+                document.body.classList.remove('pdf-capture-mode');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const imageData = canvas.toDataURL('image/jpeg', 0.72);
+
+            let heightLeft = imgHeight;
+            let position = 0;
+            pdf.addImage(imageData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imageData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            return pdf.output('datauristring').split(',')[1];
         }
 
         async function collectApplicationEmailAttachments(data) {
             const attachments = [
                 {
-                    filename: `PMG-completed-application-${Date.now()}.txt`,
-                    content: textToBase64(buildApplicationText(data))
+                    filename: `PMG-completed-application-${Date.now()}.pdf`,
+                    content: await generateCompletedApplicationPdf()
                 }
             ];
             const files = [];
