@@ -401,6 +401,7 @@ h3 {
 .showcase-section,
 .testimonials-section,
 .videos-section,
+.promotion-images-section,
 .contact-section {
   background: #030507;
 }
@@ -532,11 +533,22 @@ h3 {
   gap: 18px;
 }
 
+.promotion-image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .video-card,
+.promotion-image-card,
 .video-placeholder {
   min-height: 300px;
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(13, 24, 39, 0.9), rgba(5, 9, 15, 0.96));
+}
+
+.promotion-image-card {
+  overflow: hidden;
 }
 
 .video-card video {
@@ -546,12 +558,22 @@ h3 {
   object-fit: contain;
 }
 
+.promotion-image-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  object-fit: cover;
+}
+
 .video-card-content,
+.promotion-image-card-content,
 .video-placeholder {
   padding: clamp(22px, 3vw, 34px);
 }
 
 .video-placeholder span,
+.promotion-image-card-content span,
 .video-card-content span {
   color: var(--gold-light);
   font-size: 13px;
@@ -559,8 +581,18 @@ h3 {
 }
 
 .video-placeholder p,
+.promotion-image-card-content p,
 .video-card-content p {
   color: var(--muted);
+}
+
+.promotion-image-card h3 {
+  margin-top: 10px;
+}
+
+.promotion-image-card a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .promotion-band {
@@ -874,6 +906,16 @@ h3 {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.admin-card img,
+.admin-card video {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  margin-bottom: 16px;
+  background: #000;
+  object-fit: contain;
+}
+
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1018,6 +1060,7 @@ h3 {
   .team-grid,
   .testimonial-grid,
   .video-grid,
+  .promotion-image-grid,
   .promotion-band,
   .contact-section,
   .application-section {

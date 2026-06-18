@@ -50,7 +50,7 @@
           <p class="section-kicker">Dashboard</p>
           <h2>Website Admin Operations</h2>
           <p class="admin-muted">
-            Manage public website wording, leadership team members and agency promotion videos from one place.
+            Manage public website wording, leadership team members, agency promotion videos and image promotions from one place.
           </p>
         </div>
         <div class="admin-stats">
@@ -61,6 +61,10 @@
           <article>
             <span id="videoCount">0</span>
             <p>Promotion Videos</p>
+          </article>
+          <article>
+            <span id="imageCount">0</span>
+            <p>Promotion Images</p>
           </article>
           <article>
             <span id="leadCount">0</span>
@@ -110,6 +114,10 @@
           <label class="full">
             Video Section Title
             <input name="videoSectionTitle" />
+          </label>
+          <label class="full">
+            Image Section Title
+            <input name="imageSectionTitle" />
           </label>
           <label>
             Promotion Title
@@ -200,6 +208,41 @@
             <button class="button primary" type="submit">Save Video</button>
             <button class="button secondary" type="button" id="newVideo">New Video</button>
             <button class="button secondary" type="button" id="clearVideos">Clear Videos</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="adminPromotionImages" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Agency Promotion Images</p>
+          <h2>Upload Promotion Images</h2>
+          <p class="admin-muted">Upload image ads, campaign artwork or property promotion images for the homepage image section.</p>
+        </div>
+
+        <div class="admin-grid" id="adminPromotionImageList"></div>
+
+        <form class="admin-form" id="promotionImageEditorForm">
+          <input type="hidden" name="index" />
+          <label>
+            Image Title
+            <input name="title" required />
+          </label>
+          <label>
+            Short Description
+            <input name="description" />
+          </label>
+          <label class="full">
+            Optional Link
+            <input type="url" name="link_url" placeholder="https://..." />
+          </label>
+          <label class="full">
+            Image File
+            <input type="file" name="image" accept="image/*" />
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Image</button>
+            <button class="button secondary" type="button" id="newPromotionImage">New Image</button>
+            <button class="button secondary" type="button" id="clearPromotionImages">Clear Images</button>
           </div>
         </form>
       </section>

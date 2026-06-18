@@ -34,6 +34,7 @@ const contactForm = document.querySelector("#contactForm");
 const applicationForm = document.querySelector("#applicationForm");
 const teamGrid = document.querySelector("[data-editable-team]");
 const videoGrid = document.querySelector("[data-video-grid]");
+const promotionImageGrid = document.querySelector("[data-promotion-image-grid]");
 const adminLogin = document.querySelector("#adminLogin");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const contentEditorForm = document.querySelector("#contentEditorForm");
@@ -41,6 +42,8 @@ const adminTeamList = document.querySelector("#adminTeamList");
 const teamEditorForm = document.querySelector("#teamEditorForm");
 const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
+const adminPromotionImageList = document.querySelector("#adminPromotionImageList");
+const promotionImageEditorForm = document.querySelector("#promotionImageEditorForm");
 const adminLeadsList = document.querySelector("#adminLeadsList");
 const adminEnquiriesList = document.querySelector("#adminEnquiriesList");
 const adminApplicationsList = document.querySelector("#adminApplicationsList");
@@ -54,6 +57,7 @@ const defaultContent = {
   heroTitle: "Managing Assets. Maximising Value.",
   heroSubtitle: "Professional Property Management Designed Around Exceptional Service.",
   videoSectionTitle: "Agency Promotion Videos",
+  imageSectionTitle: "Agency Promotion Images",
   promoTitle: "Unlock Premium Benefits",
   promoBody: "Mention this ad and receive up to 6 months free management.*",
   promoFinePrint: "For new managements only. Conditions apply.",
@@ -85,6 +89,23 @@ const fallbackVideos = [
     title: "Agency Promotion Video",
     description: "Premium Management Group agency promotion.",
     video_url: "assets/agency-promotion.mp4",
+  },
+];
+
+const fallbackPromotionImages = [
+  {
+    id: "fallback-promotion-image-01",
+    title: "Premium Outdoor Campaign",
+    description: "PMG street-level promotion across high-traffic Sydney locations.",
+    image_url: "assets/promotion-ad-street-01.jpeg",
+    link_url: "",
+  },
+  {
+    id: "fallback-promotion-image-02",
+    title: "Premium Brand Visibility",
+    description: "Luxury property management advertising designed for landlord confidence.",
+    image_url: "assets/promotion-ad-street-02.jpeg",
+    link_url: "",
   },
 ];
 
@@ -141,6 +162,16 @@ async function getVideos(includeInactive = false) {
   const { data, error } = await query;
   if (includeInactive) return error || !data ? [] : data;
   if (error || !data) return fallbackVideos;
+  return data;
+}
+
+async function getPromotionImages(includeInactive = false) {
+  if (!db) return includeInactive ? [] : fallbackPromotionImages;
+  let query = db.from("promotion_images").select("*").order("sort_order", { ascending: true });
+  if (!includeInactive) query = query.eq("is_active", true);
+  const { data, error } = await query;
+  if (includeInactive) return error || !data ? [] : data;
+  if (error || !data || !data.length) return fallbackPromotionImages;
   return data;
 }
 
@@ -204,6 +235,36 @@ async function renderPublicVideos() {
     .join("");
 }
 
+async function renderPublicPromotionImages() {
+  if (!promotionImageGrid) return;
+  const images = await getPromotionImages(false);
+  if (!images.length) {
+    promotionImageGrid.innerHTML = "";
+    return;
+  }
+  promotionImageGrid.innerHTML = images
+    .map((image, index) => {
+      const imageMarkup = `
+        <img src="${image.image_url}" alt="${escapeText(image.title || "PMG promotion image")}" loading="lazy" />
+        <div class="promotion-image-card-content">
+          <span>${String(index + 1).padStart(2, "0")}</span>
+          <h3>${escapeText(image.title || "PMG Promotion Image")}</h3>
+          <p>${escapeText(image.description || "")}</p>
+        </div>
+      `;
+      return `
+        <article class="promotion-image-card reveal is-visible">
+          ${
+            image.link_url
+              ? `<a href="${escapeText(image.link_url)}" target="_blank" rel="noopener">${imageMarkup}</a>`
+              : imageMarkup
+          }
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function lockAdmin() {
   if (!adminLogin) return;
   document.body.classList.add("admin-locked");
@@ -232,6 +293,7 @@ async function unlockAdmin() {
   await renderContentEditor();
   await renderAdminTeam();
   await renderAdminVideos();
+  await renderAdminPromotionImages();
   await renderAdminLeads();
   await renderAdminEnquiries();
   await renderAdminApplications();
@@ -240,11 +302,13 @@ async function unlockAdmin() {
 async function renderAdminDashboard() {
   const team = await getTeamMembers(true);
   const videos = await getVideos(true);
+  const images = await getPromotionImages(true);
   const leads = await getPromotionLeads();
   const enquiries = await getEnquiries();
   const applications = await getApplications();
   document.querySelector("#teamCount") && (document.querySelector("#teamCount").textContent = String(team.length));
   document.querySelector("#videoCount") && (document.querySelector("#videoCount").textContent = String(videos.length));
+  document.querySelector("#imageCount") && (document.querySelector("#imageCount").textContent = String(images.length));
   document.querySelector("#leadCount") && (document.querySelector("#leadCount").textContent = String(leads.length));
   document.querySelector("#enquiryCount") && (document.querySelector("#enquiryCount").textContent = String(enquiries.length));
   document.querySelector("#applicationCount") && (document.querySelector("#applicationCount").textContent = String(applications.length));
@@ -305,6 +369,29 @@ async function renderAdminVideos() {
         )
         .join("")
     : `<p class="admin-muted">No videos uploaded yet.</p>`;
+}
+
+async function renderAdminPromotionImages() {
+  if (!adminPromotionImageList) return;
+  const images = await getPromotionImages(true);
+  adminPromotionImageList.innerHTML = images.length
+    ? images
+        .map(
+          (image) => `
+            <article class="admin-card">
+              <img src="${image.image_url}" alt="${escapeText(image.title || "PMG Promotion Image")}" />
+              <h3>${escapeText(image.title || "PMG Promotion Image")}</h3>
+              <p class="admin-muted">${escapeText(image.description || "")}</p>
+              ${image.link_url ? `<p class="admin-muted">${escapeText(image.link_url)}</p>` : ""}
+              <div class="admin-actions">
+                <button class="button secondary" type="button" data-edit-promotion-image="${image.id}">Edit</button>
+                <button class="button secondary" type="button" data-delete-promotion-image="${image.id}">Delete</button>
+              </div>
+            </article>
+          `
+        )
+        .join("")
+    : `<p class="admin-muted">No promotion images uploaded yet.</p>`;
 }
 
 async function getPromotionLeads() {
@@ -749,6 +836,89 @@ document.querySelector("#clearVideos")?.addEventListener("click", async () => {
   await renderPublicVideos();
 });
 
+adminPromotionImageList?.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-promotion-image]");
+  const deleteButton = event.target.closest("[data-delete-promotion-image]");
+  if (editButton && promotionImageEditorForm) {
+    const images = await getPromotionImages(true);
+    const image = images.find((item) => item.id === editButton.dataset.editPromotionImage);
+    if (!image) return;
+    promotionImageEditorForm.elements.index.value = image.id;
+    promotionImageEditorForm.elements.title.value = image.title;
+    promotionImageEditorForm.elements.description.value = image.description || "";
+    promotionImageEditorForm.elements.link_url.value = image.link_url || "";
+  }
+  if (deleteButton) {
+    const { error } = await db.from("promotion_images").delete().eq("id", deleteButton.dataset.deletePromotionImage);
+    if (error) {
+      alert(`Promotion image could not be deleted: ${error.message}`);
+      return;
+    }
+    await renderAdminPromotionImages();
+    await renderAdminDashboard();
+    await renderPublicPromotionImages();
+  }
+});
+
+promotionImageEditorForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const values = formValues(promotionImageEditorForm);
+    const id = values.index;
+    let imageUrl = "";
+    const file = promotionImageEditorForm.elements.image.files[0];
+    if (file && file.size > 10 * 1024 * 1024) {
+      alert("This image is larger than 10 MB. Please compress it or upload a smaller image.");
+      return;
+    }
+    if (file) imageUrl = await uploadPublicFile("promotion-images", file);
+    const row = {
+      title: values.title,
+      description: values.description,
+      link_url: values.link_url || null,
+      is_active: true,
+    };
+    if (imageUrl) row.image_url = imageUrl;
+    if (id) {
+      const { error } = await db.from("promotion_images").update(row).eq("id", id);
+      if (error) throw error;
+    } else {
+      if (!imageUrl) {
+        alert("Please upload an image file.");
+        return;
+      }
+      row.sort_order = (await getPromotionImages(true)).length + 1;
+      const { error } = await db.from("promotion_images").insert(row);
+      if (error) throw error;
+    }
+    promotionImageEditorForm.reset();
+    promotionImageEditorForm.elements.index.value = "";
+    await renderAdminPromotionImages();
+    await renderAdminDashboard();
+    await renderPublicPromotionImages();
+    alert("Promotion image saved.");
+  } catch (error) {
+    alert(`Promotion image could not be saved: ${error.message || error}`);
+  }
+});
+
+document.querySelector("#newPromotionImage")?.addEventListener("click", () => {
+  promotionImageEditorForm?.reset();
+  if (promotionImageEditorForm) promotionImageEditorForm.elements.index.value = "";
+});
+
+document.querySelector("#clearPromotionImages")?.addEventListener("click", async () => {
+  if (!confirm("Delete all promotion images? This cannot be undone.")) return;
+  const { error } = await db.from("promotion_images").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Promotion images could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminPromotionImages();
+  await renderAdminDashboard();
+  await renderPublicPromotionImages();
+});
+
 document.querySelector("#clearLeads")?.addEventListener("click", async () => {
   alert("Lead deletion requires an additional delete policy. Export leads before deleting.");
 });
@@ -834,6 +1004,7 @@ setHeaderState();
   await renderPublicContent();
   await renderPublicTeam();
   await renderPublicVideos();
+  await renderPublicPromotionImages();
   lockAdmin();
   if (db) {
     const { data } = await db.auth.getSession();
