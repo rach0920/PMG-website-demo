@@ -21,7 +21,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260618-images" />
   </head>
   <body>
     <header class="site-header" data-elevate>
@@ -224,7 +224,24 @@
           <p class="section-kicker">Agency Promotion Images</p>
           <h2 data-content-field="imageSectionTitle">Agency Promotion Images</h2>
         </div>
-        <div class="promotion-image-grid" id="promotionImageGrid" data-promotion-image-grid></div>
+        <div class="promotion-image-grid" id="promotionImageGrid" data-promotion-image-grid>
+          <article class="promotion-image-card reveal">
+            <img src="assets/promotion-ad-street-01.jpeg" alt="PMG outdoor advertising campaign in Sydney" loading="lazy" />
+            <div class="promotion-image-card-content">
+              <span>01</span>
+              <h3>Premium Outdoor Campaign</h3>
+              <p>PMG street-level promotion across high-traffic Sydney locations.</p>
+            </div>
+          </article>
+          <article class="promotion-image-card reveal">
+            <img src="assets/promotion-ad-street-02.jpeg" alt="PMG premium brand visibility campaign in Sydney" loading="lazy" />
+            <div class="promotion-image-card-content">
+              <span>02</span>
+              <h3>Premium Brand Visibility</h3>
+              <p>Luxury property management advertising designed for landlord confidence.</p>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section id="promotion" class="promotion-band reveal">
@@ -323,6 +340,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=20260618-images"></script>
   </body>
 </html>
