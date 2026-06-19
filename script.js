@@ -79,7 +79,7 @@ const fallbackTeam = [
     title: "Principal",
     phone: "0414 322 388",
     email: "edwin@premiummg.com.au",
-    photo_url: "",
+    photo_url: "assets/edwin-lee.png",
   },
 ];
 
@@ -129,6 +129,16 @@ function initials(name) {
 
 function formValues(form) {
   return Object.fromEntries(new FormData(form).entries());
+}
+
+function teamPhotoUrl(member) {
+  if (member.photo_url) return member.photo_url;
+  if (String(member.name || "").toLowerCase().includes("edwin lee")) return "assets/edwin-lee.png";
+  return "";
+}
+
+function teamPhotoClass(member) {
+  return String(member.name || "").toLowerCase().includes("edwin lee") ? "team-photo is-edwin" : "team-photo";
 }
 
 function setHeaderState() {
@@ -193,10 +203,10 @@ async function renderPublicTeam() {
     .map(
       (member) => `
         <article class="team-card reveal is-visible">
-          <div class="team-photo">
+          <div class="${teamPhotoClass(member)}">
             ${
-              member.photo_url
-                ? `<img src="${member.photo_url}" alt="${escapeText(member.name)}" />`
+              teamPhotoUrl(member)
+                ? `<img src="${teamPhotoUrl(member)}" alt="${escapeText(member.name)}" />`
                 : `<div class="team-photo-placeholder" aria-label="${escapeText(member.name)} photo placeholder">${initials(member.name)}</div>`
             }
           </div>
@@ -329,10 +339,10 @@ async function renderAdminTeam() {
     .map(
       (member) => `
         <article class="admin-card">
-          <div class="team-photo">
+          <div class="${teamPhotoClass(member)}">
             ${
-              member.photo_url
-                ? `<img src="${member.photo_url}" alt="${escapeText(member.name)}" />`
+              teamPhotoUrl(member)
+                ? `<img src="${teamPhotoUrl(member)}" alt="${escapeText(member.name)}" />`
                 : `<div class="team-photo-placeholder">${initials(member.name)}</div>`
             }
           </div>

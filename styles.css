@@ -456,15 +456,15 @@ h3 {
 
 .team-card {
   display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 24px;
+  grid-template-columns: 280px 1fr;
+  gap: 34px;
   align-items: center;
-  min-height: 260px;
+  min-height: 420px;
   border: 1px solid var(--line);
 }
 
 .team-photo {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -477,6 +477,12 @@ h3 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 18%;
+}
+
+.team-photo.is-edwin img {
+  transform: scale(1.34);
+  transform-origin: center 18%;
 }
 
 .team-photo-placeholder {
@@ -1072,7 +1078,7 @@ h3 {
   }
 
   .team-photo {
-    max-width: 240px;
+    max-width: 320px;
   }
 
   .trust-band,
