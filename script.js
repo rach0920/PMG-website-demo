@@ -71,7 +71,7 @@ const fallbackTeam = [
     title: "Property Manager",
     phone: "0435 567 780",
     email: "rachel@premiummg.com.au",
-    photo_url: "assets/rachel-han.png",
+    photo_url: "assets/rachel-han-office.png",
   },
   {
     id: "fallback-edwin",
@@ -132,13 +132,17 @@ function formValues(form) {
 }
 
 function teamPhotoUrl(member) {
+  if (String(member.name || "").toLowerCase().includes("rachel han")) return "assets/rachel-han-office.png";
   if (member.photo_url) return member.photo_url;
   if (String(member.name || "").toLowerCase().includes("edwin lee")) return "assets/edwin-lee.png";
   return "";
 }
 
 function teamPhotoClass(member) {
-  return String(member.name || "").toLowerCase().includes("edwin lee") ? "team-photo is-edwin" : "team-photo";
+  const name = String(member.name || "").toLowerCase();
+  if (name.includes("edwin lee")) return "team-photo is-edwin";
+  if (name.includes("rachel han")) return "team-photo is-rachel";
+  return "team-photo";
 }
 
 function setHeaderState() {

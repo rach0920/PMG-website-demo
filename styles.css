@@ -485,6 +485,11 @@ h3 {
   transform-origin: center 18%;
 }
 
+.team-photo.is-rachel img {
+  transform: scale(1.08);
+  transform-origin: center 16%;
+}
+
 .team-photo-placeholder {
   display: grid;
   width: 100%;
