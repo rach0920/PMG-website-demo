@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260621-property-listings" />
   </head>
   <body class="admin-page admin-locked">
     <header class="site-header" data-elevate>
@@ -50,7 +50,7 @@
           <p class="section-kicker">Dashboard</p>
           <h2>Website Admin Operations</h2>
           <p class="admin-muted">
-            Manage public website wording, leadership team members, agency promotion videos and image promotions from one place.
+            Manage public website wording, leadership team members, listings, agency promotion videos and image promotions from one place.
           </p>
         </div>
         <div class="admin-stats">
@@ -65,6 +65,10 @@
           <article>
             <span id="imageCount">0</span>
             <p>Promotion Images</p>
+          </article>
+          <article>
+            <span id="propertyCount">0</span>
+            <p>Properties</p>
           </article>
           <article>
             <span id="leadCount">0</span>
@@ -88,6 +92,7 @@
         </p>
         <div class="admin-actions">
           <a class="button secondary" href="index.html#team">View Team Section</a>
+          <a class="button secondary" href="index.html#for-lease">View Listings</a>
           <button class="button secondary" type="button" id="adminLogout">Logout</button>
         </div>
       </section>
@@ -177,6 +182,68 @@
             <button class="button primary" type="submit">Save Team Member</button>
             <button class="button secondary" type="button" id="newTeamMember">Add New</button>
             <button class="button secondary" type="button" id="resetTeam">Reset Default Team</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="adminProperties" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Property Listings</p>
+          <h2>For Lease & For Sale</h2>
+          <p class="admin-muted">
+            Add, edit and remove properties shown in the For Lease and For Sale sections on the website.
+          </p>
+        </div>
+
+        <div class="admin-grid" id="adminPropertyList"></div>
+
+        <form class="admin-form" id="propertyEditorForm">
+          <input type="hidden" name="index" />
+          <label>
+            Section
+            <select name="listing_type" required>
+              <option value="for_lease">For Lease</option>
+              <option value="for_sale">For Sale</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select name="status" required>
+              <option value="for lease">For Lease</option>
+              <option value="for sale">For Sale</option>
+              <option value="sold">Sold</option>
+              <option value="under application">Under Application</option>
+              <option value="deposit taken">Deposit Taken</option>
+            </select>
+          </label>
+          <label class="full">
+            Property Address
+            <input name="address" required />
+          </label>
+          <label>
+            Price
+            <input name="price" placeholder="$1,200 per week / Contact Agent" />
+          </label>
+          <label>
+            Display Order
+            <input type="number" name="sort_order" min="0" step="1" placeholder="1" />
+          </label>
+          <label class="full">
+            Description
+            <textarea name="description" rows="4"></textarea>
+          </label>
+          <label class="full">
+            Property Photos
+            <input type="file" name="photos" accept="image/*" multiple />
+          </label>
+          <label class="full">
+            Floorplan
+            <input type="file" name="floorplan" accept="image/*,.pdf" />
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Property</button>
+            <button class="button secondary" type="button" id="newProperty">Add New</button>
+            <button class="button secondary" type="button" id="clearProperties">Clear Properties</button>
           </div>
         </form>
       </section>
@@ -288,6 +355,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=20260621-property-listings"></script>
   </body>
 </html>

@@ -35,6 +35,7 @@ const applicationForm = document.querySelector("#applicationForm");
 const teamGrid = document.querySelector("[data-editable-team]");
 const videoGrid = document.querySelector("[data-video-grid]");
 const promotionImageGrid = document.querySelector("[data-promotion-image-grid]");
+const propertyGrids = document.querySelectorAll("[data-property-grid]");
 const adminLogin = document.querySelector("#adminLogin");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const contentEditorForm = document.querySelector("#contentEditorForm");
@@ -44,6 +45,8 @@ const adminVideoList = document.querySelector("#adminVideoList");
 const videoEditorForm = document.querySelector("#videoEditorForm");
 const adminPromotionImageList = document.querySelector("#adminPromotionImageList");
 const promotionImageEditorForm = document.querySelector("#promotionImageEditorForm");
+const adminPropertyList = document.querySelector("#adminPropertyList");
+const propertyEditorForm = document.querySelector("#propertyEditorForm");
 const adminLeadsList = document.querySelector("#adminLeadsList");
 const adminEnquiriesList = document.querySelector("#adminEnquiriesList");
 const adminApplicationsList = document.querySelector("#adminApplicationsList");
@@ -108,6 +111,14 @@ const fallbackPromotionImages = [
     link_url: "",
   },
 ];
+
+const propertyStatusLabels = {
+  "for lease": "For Lease",
+  "for sale": "For Sale",
+  sold: "Sold",
+  "under application": "Under Application",
+  "deposit taken": "Deposit Taken",
+};
 
 function escapeText(value) {
   return String(value || "")
@@ -187,6 +198,14 @@ async function getPromotionImages(includeInactive = false) {
   if (includeInactive) return error || !data ? [] : data;
   if (error || !data || !data.length) return fallbackPromotionImages;
   return data;
+}
+
+async function getProperties(includeInactive = false) {
+  if (!db) return [];
+  let query = db.from("properties").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: false });
+  if (!includeInactive) query = query.eq("is_active", true);
+  const { data, error } = await query;
+  return error || !data ? [] : data;
 }
 
 function renderContent(content) {
@@ -279,6 +298,49 @@ async function renderPublicPromotionImages() {
     .join("");
 }
 
+function propertyPhoto(property) {
+  const photos = Array.isArray(property.photo_urls) ? property.photo_urls : [];
+  return photos[0] || "";
+}
+
+function propertyStatusText(status) {
+  return propertyStatusLabels[String(status || "").toLowerCase()] || status || "Available";
+}
+
+async function renderPublicProperties() {
+  if (!propertyGrids.length) return;
+  const properties = await getProperties(false);
+  propertyGrids.forEach((grid) => {
+    const listingType = grid.dataset.propertyGrid;
+    const items = properties.filter((property) => property.listing_type === listingType);
+    grid.innerHTML = items.length
+      ? items
+          .map((property) => {
+            const photo = propertyPhoto(property);
+            return `
+              <article class="property-card reveal is-visible">
+                <div class="property-media">
+                  ${photo ? `<img src="${photo}" alt="${escapeText(property.address)}" loading="lazy" />` : ""}
+                  <span class="property-status">${escapeText(propertyStatusText(property.status))}</span>
+                </div>
+                <div class="property-content">
+                  <h3>${escapeText(property.address)}</h3>
+                  ${property.price ? `<p class="property-price">${escapeText(property.price)}</p>` : ""}
+                  ${property.description ? `<p>${escapeText(property.description)}</p>` : ""}
+                  ${
+                    property.floorplan_url
+                      ? `<div class="property-actions"><a class="property-floorplan-link" href="${property.floorplan_url}" target="_blank" rel="noopener">View Floorplan</a></div>`
+                      : ""
+                  }
+                </div>
+              </article>
+            `;
+          })
+          .join("")
+      : `<article class="property-empty reveal is-visible"><p>Current ${listingType === "for_lease" ? "leasing" : "sales"} opportunities will be updated soon.</p></article>`;
+  });
+}
+
 function lockAdmin() {
   if (!adminLogin) return;
   document.body.classList.add("admin-locked");
@@ -306,6 +368,7 @@ async function unlockAdmin() {
   await renderAdminDashboard();
   await renderContentEditor();
   await renderAdminTeam();
+  await renderAdminProperties();
   await renderAdminVideos();
   await renderAdminPromotionImages();
   await renderAdminLeads();
@@ -317,12 +380,14 @@ async function renderAdminDashboard() {
   const team = await getTeamMembers(true);
   const videos = await getVideos(true);
   const images = await getPromotionImages(true);
+  const properties = await getProperties(true);
   const leads = await getPromotionLeads();
   const enquiries = await getEnquiries();
   const applications = await getApplications();
   document.querySelector("#teamCount") && (document.querySelector("#teamCount").textContent = String(team.length));
   document.querySelector("#videoCount") && (document.querySelector("#videoCount").textContent = String(videos.length));
   document.querySelector("#imageCount") && (document.querySelector("#imageCount").textContent = String(images.length));
+  document.querySelector("#propertyCount") && (document.querySelector("#propertyCount").textContent = String(properties.length));
   document.querySelector("#leadCount") && (document.querySelector("#leadCount").textContent = String(leads.length));
   document.querySelector("#enquiryCount") && (document.querySelector("#enquiryCount").textContent = String(enquiries.length));
   document.querySelector("#applicationCount") && (document.querySelector("#applicationCount").textContent = String(applications.length));
@@ -406,6 +471,32 @@ async function renderAdminPromotionImages() {
         )
         .join("")
     : `<p class="admin-muted">No promotion images uploaded yet.</p>`;
+}
+
+async function renderAdminProperties() {
+  if (!adminPropertyList) return;
+  const properties = await getProperties(true);
+  adminPropertyList.innerHTML = properties.length
+    ? properties
+        .map(
+          (property) => `
+            <article class="admin-card">
+              ${propertyPhoto(property) ? `<img src="${propertyPhoto(property)}" alt="${escapeText(property.address)}" />` : ""}
+              <h3>${escapeText(property.address || "Property Listing")}</h3>
+              <p class="team-role">${escapeText(propertyStatusText(property.status))}</p>
+              <p class="admin-muted">
+                ${escapeText(property.listing_type === "for_sale" ? "For Sale" : "For Lease")}<br />
+                ${escapeText(property.price || "")}
+              </p>
+              <div class="admin-actions">
+                <button class="button secondary" type="button" data-edit-property="${property.id}">Edit</button>
+                <button class="button secondary" type="button" data-delete-property="${property.id}">Delete</button>
+              </div>
+            </article>
+          `
+        )
+        .join("")
+    : `<p class="admin-muted">No properties added yet.</p>`;
 }
 
 async function getPromotionLeads() {
@@ -933,6 +1024,108 @@ document.querySelector("#clearPromotionImages")?.addEventListener("click", async
   await renderPublicPromotionImages();
 });
 
+adminPropertyList?.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-property]");
+  const deleteButton = event.target.closest("[data-delete-property]");
+  if (editButton && propertyEditorForm) {
+    const properties = await getProperties(true);
+    const property = properties.find((item) => item.id === editButton.dataset.editProperty);
+    if (!property) return;
+    propertyEditorForm.elements.index.value = property.id;
+    propertyEditorForm.elements.listing_type.value = property.listing_type || "for_lease";
+    propertyEditorForm.elements.status.value = property.status || "for lease";
+    propertyEditorForm.elements.address.value = property.address || "";
+    propertyEditorForm.elements.price.value = property.price || "";
+    propertyEditorForm.elements.sort_order.value = property.sort_order ?? "";
+    propertyEditorForm.elements.description.value = property.description || "";
+    propertyEditorForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (deleteButton) {
+    if (!confirm("Delete this property listing?")) return;
+    const { error } = await db.from("properties").delete().eq("id", deleteButton.dataset.deleteProperty);
+    if (error) {
+      alert(`Property could not be deleted: ${error.message}`);
+      return;
+    }
+    await renderAdminProperties();
+    await renderAdminDashboard();
+    await renderPublicProperties();
+  }
+});
+
+propertyEditorForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const values = formValues(propertyEditorForm);
+    const id = values.index;
+    const existing = id ? (await getProperties(true)).find((item) => item.id === id) : null;
+    let photoUrls = existing?.photo_urls || [];
+    let floorplanUrl = existing?.floorplan_url || "";
+    const photoFiles = Array.from(propertyEditorForm.elements.photos.files || []);
+    const floorplanFile = propertyEditorForm.elements.floorplan.files[0];
+
+    for (const file of photoFiles) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("One of the property photos is larger than 10 MB. Please compress it or upload a smaller image.");
+        return;
+      }
+    }
+    if (floorplanFile && floorplanFile.size > 10 * 1024 * 1024) {
+      alert("The floorplan file is larger than 10 MB. Please compress it or upload a smaller file.");
+      return;
+    }
+
+    if (photoFiles.length) photoUrls = await Promise.all(photoFiles.map((file) => uploadPublicFile("property-media", file)));
+    if (floorplanFile) floorplanUrl = await uploadPublicFile("property-media", floorplanFile);
+
+    const row = {
+      listing_type: values.listing_type,
+      status: values.status,
+      address: values.address,
+      price: values.price || null,
+      description: values.description || null,
+      photo_urls: photoUrls,
+      floorplan_url: floorplanUrl || null,
+      sort_order: values.sort_order ? Number(values.sort_order) : (await getProperties(true)).length + 1,
+      is_active: true,
+    };
+
+    if (id) {
+      const { error } = await db.from("properties").update(row).eq("id", id);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from("properties").insert(row);
+      if (error) throw error;
+    }
+
+    propertyEditorForm.reset();
+    propertyEditorForm.elements.index.value = "";
+    await renderAdminProperties();
+    await renderAdminDashboard();
+    await renderPublicProperties();
+    alert("Property saved.");
+  } catch (error) {
+    alert(`Property could not be saved: ${error.message || error}`);
+  }
+});
+
+document.querySelector("#newProperty")?.addEventListener("click", () => {
+  propertyEditorForm?.reset();
+  if (propertyEditorForm) propertyEditorForm.elements.index.value = "";
+});
+
+document.querySelector("#clearProperties")?.addEventListener("click", async () => {
+  if (!confirm("Delete all property listings? This cannot be undone.")) return;
+  const { error } = await db.from("properties").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Properties could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminProperties();
+  await renderAdminDashboard();
+  await renderPublicProperties();
+});
+
 document.querySelector("#clearLeads")?.addEventListener("click", async () => {
   alert("Lead deletion requires an additional delete policy. Export leads before deleting.");
 });
@@ -1017,6 +1210,7 @@ setHeaderState();
 (async function init() {
   await renderPublicContent();
   await renderPublicTeam();
+  await renderPublicProperties();
   await renderPublicVideos();
   await renderPublicPromotionImages();
   lockAdmin();
