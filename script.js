@@ -71,10 +71,12 @@ const fallbackTeam = [
   {
     id: "fallback-rachel",
     name: "Rachel Han",
-    title: "Property Manager",
+    title: "Senior Property Manager",
     phone: "0435 567 780",
     email: "rachel@premiummg.com.au",
     photo_url: "assets/rachel-han-office.png",
+    bio:
+      "For more than 12 years, Rachel Han has worked with property owners across Sydney, helping them manage and maintain investment properties with confidence.\n\nThroughout her career, Rachel has managed various sizes of property portfolios across Sydney, working with a wide range of investors both residential and commercial properties. Her experience has given her a strong understanding of the day-to-day responsibilities of property management, as well as the importance of communication, organisation and consistency in achieving long-term results.\n\nRachel is known for her approachable nature, attention to detail and practical approach to problem solving. She believes that successful property management comes from understanding each client's expectations, responding promptly and maintaining strong relationships with both landlords and tenants.\n\nAs Senior Property Manager at Premium Management Group, Rachel works closely with every client to ensure their property is managed with professionalism, care and attention to detail, giving owners confidence that their investment is in experienced hands.",
   },
   {
     id: "fallback-edwin",
@@ -83,6 +85,8 @@ const fallbackTeam = [
     phone: "0414 322 388",
     email: "edwin@premiummg.com.au",
     photo_url: "assets/edwin-lee.png",
+    bio:
+      "With over 30 years of experience in the real estate industry, Edwin Lee has built a career spanning residential property sales, commercial property management, and investment property advice.\n\nEdwin's introduction to real estate came through the family business, where he worked alongside his father and developed a practical understanding of the industry early in his career. Over the years, he has worked with homeowners, investors and commercial property owners across a wide range of transactions, earning a reputation for honest advice and long term relationships.\n\nToday, Edwin is the Founder and Managing Director of Premium Management Group, specialising in Property Sales, Residential and Commercial Property Management. His broad industry experience allows him to understand not only the transaction itself, but also the long-term goals behind every property decision.\n\nClients value Edwin for his straightforward approach, clear communication and ability to navigate both straightforward and complex property matters with confidence. Whether representing a property sale or overseeing a commercial asset, his focus remains the same to provide reliable advice, strong representation, and a level of service clients can rely on.",
   },
 ];
 
@@ -154,6 +158,28 @@ function teamPhotoClass(member) {
   if (name.includes("edwin lee")) return "team-photo is-edwin";
   if (name.includes("rachel han")) return "team-photo is-rachel";
   return "team-photo";
+}
+
+function teamBio(member) {
+  const name = String(member.name || "").toLowerCase();
+  const fallback = fallbackTeam.find((item) => item.name.toLowerCase() === name);
+  return member.bio || fallback?.bio || "";
+}
+
+function teamTitle(member) {
+  const name = String(member.name || "").toLowerCase();
+  if (name.includes("rachel han")) return "Senior Property Manager";
+  if (name.includes("edwin lee")) return "Principal";
+  return member.title || "";
+}
+
+function bioParagraphs(value) {
+  return String(value || "")
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p>${escapeText(paragraph)}</p>`)
+    .join("");
 }
 
 function setHeaderState() {
@@ -234,8 +260,9 @@ async function renderPublicTeam() {
             }
           </div>
           <div>
-            <p class="team-role">${escapeText(member.title)}</p>
+            <p class="team-role">${escapeText(teamTitle(member))}</p>
             <h3>${escapeText(member.name)}</h3>
+            ${teamBio(member) ? `<div class="team-bio">${bioParagraphs(teamBio(member))}</div>` : ""}
             <a href="tel:${String(member.phone || "").replace(/\s/g, "")}">${escapeText(member.phone)}</a>
             <a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>
           </div>
@@ -416,7 +443,8 @@ async function renderAdminTeam() {
             }
           </div>
           <h3>${escapeText(member.name)}</h3>
-          <p class="team-role">${escapeText(member.title)}</p>
+          <p class="team-role">${escapeText(teamTitle(member))}</p>
+          ${teamBio(member) ? `<div class="team-bio admin-team-bio">${bioParagraphs(teamBio(member))}</div>` : ""}
           <p class="admin-muted">${escapeText(member.phone)}<br />${escapeText(member.email)}</p>
           <div class="admin-actions">
             <button class="button secondary" type="button" data-edit-team="${member.id}">Edit</button>
@@ -815,6 +843,7 @@ adminTeamList?.addEventListener("click", async (event) => {
     teamEditorForm.elements.title.value = member.title;
     teamEditorForm.elements.phone.value = member.phone || "";
     teamEditorForm.elements.email.value = member.email || "";
+    teamEditorForm.elements.bio.value = teamBio(member);
   }
   if (deleteButton) {
     await db.from("team_members").delete().eq("id", deleteButton.dataset.deleteTeam);
@@ -836,6 +865,7 @@ teamEditorForm?.addEventListener("submit", async (event) => {
     title: values.title,
     phone: values.phone,
     email: values.email,
+    bio: values.bio,
     is_active: true,
   };
   if (photoUrl) row.photo_url = photoUrl;
