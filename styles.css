@@ -789,6 +789,14 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.spam-check {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .contact-form input,
 .contact-form textarea {
   width: 100%;
@@ -803,6 +811,23 @@ h3 {
 .contact-form input:focus,
 .contact-form textarea:focus {
   border-color: var(--gold-light);
+}
+
+.email-verification-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(216, 169, 85, 0.28);
+  background: rgba(216, 169, 85, 0.08);
+}
+
+.email-verification-panel[hidden] {
+  display: none;
+}
+
+.email-verification-panel p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .site-footer {

@@ -21,7 +21,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260707-team-bios" />
+    <link rel="stylesheet" href="styles.css?v=20260715-email-verification" />
   </head>
   <body>
     <header class="site-header" data-elevate>
@@ -291,6 +291,10 @@
           <p data-content-field="contactIntro">Tell us about your property and include any promotion code in the message box.</p>
         </div>
         <form class="contact-form reveal" id="contactForm">
+          <label class="spam-check" aria-hidden="true">
+            Website
+            <input name="website" tabindex="-1" autocomplete="off" />
+          </label>
           <label>
             Name
             <input name="name" autocomplete="name" required />
@@ -311,7 +315,16 @@
             Message
             <textarea name="message" rows="5" placeholder="Please mention your promotion code here if applicable."></textarea>
           </label>
-          <button class="button primary full" type="submit">Submit Enquiry</button>
+          <div class="email-verification-panel full" id="contactVerificationPanel" hidden>
+            <p>
+              We have sent a verification code to your email. Please enter it below to submit your enquiry.
+            </p>
+            <label>
+              Verification Code
+              <input name="verification_code" inputmode="numeric" autocomplete="one-time-code" />
+            </label>
+          </div>
+          <button class="button primary full" type="submit" id="contactSubmitButton">Send Verification Code</button>
         </form>
       </section>
     </main>
@@ -369,6 +382,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260707-team-bios"></script>
+    <script src="script.js?v=20260715-email-verification-fix"></script>
   </body>
 </html>

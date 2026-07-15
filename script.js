@@ -31,6 +31,8 @@ const promoCodePanel = document.querySelector("#promoCodePanel");
 const promoButtons = document.querySelectorAll("[data-open-promo]");
 const closePromoButtons = document.querySelectorAll("[data-close-promo]");
 const contactForm = document.querySelector("#contactForm");
+const contactVerificationPanel = document.querySelector("#contactVerificationPanel");
+const contactSubmitButton = document.querySelector("#contactSubmitButton");
 const applicationForm = document.querySelector("#applicationForm");
 const teamGrid = document.querySelector("[data-editable-team]");
 const videoGrid = document.querySelector("[data-video-grid]");
@@ -54,6 +56,7 @@ const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
 const fixedPromoCode = "6MONTHSFREE";
+let pendingContactPayload = null;
 
 const defaultContent = {
   heroEyebrow: "Boutique property management for premium investments",
@@ -639,22 +642,39 @@ async function uploadPublicFile(bucket, file) {
   return db.storage.from(targetBucket).getPublicUrl(path).data.publicUrl;
 }
 
-async function sendEmailNotification(type, payload) {
+async function postEmailApi(body) {
   const response = await fetch("/api/send-email", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type, payload }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
-    let message = "Email notification failed.";
+    const text = await response.text();
+    let message = text || "Email notification failed.";
     try {
-      const result = await response.json();
+      const result = JSON.parse(text);
       message = result.error || result.message || JSON.stringify(result);
     } catch {
-      message = await response.text();
+      if ((response.status === 404 || response.status === 405 || response.status === 501) && location.hostname === "127.0.0.1") {
+        message = "Email verification needs the Vercel API and cannot run from the local Python preview. Please test this form on the live Vercel site after deployment.";
+      }
     }
     throw new Error(message);
   }
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
+
+async function sendEmailNotification(type, payload, options = {}) {
+  return postEmailApi({ type, payload, ...options });
+}
+
+async function requestEnquiryVerification(payload) {
+  return postEmailApi({ action: "request-enquiry-verification", payload });
 }
 
 function openPromoModal() {
@@ -702,26 +722,48 @@ contactForm?.addEventListener("submit", async (event) => {
     Email: values.email,
     "Property Address": values.property,
     Message: values.message,
+    website: values.website,
   };
 
-  if (db) {
-    const { error } = await db.from("enquiries").insert({
-      name: values.name,
-      phone: values.phone,
-      email: values.email,
-      property_address: values.property,
-      message: values.message,
-    });
-    if (error) console.warn("Enquiry database insert failed", error);
-  }
-
   try {
-    await sendEmailNotification("enquiry", payload);
+    if (!pendingContactPayload) {
+      if (contactSubmitButton) contactSubmitButton.disabled = true;
+      await requestEnquiryVerification(payload);
+      pendingContactPayload = payload;
+      if (contactVerificationPanel) contactVerificationPanel.hidden = false;
+      if (contactSubmitButton) {
+        contactSubmitButton.textContent = "Verify & Submit Enquiry";
+        contactSubmitButton.disabled = false;
+      }
+      alert("A verification code has been sent to your email. Please enter the code to submit your enquiry.");
+      return;
+    }
+
+    if (!values.verification_code) {
+      alert("Please enter the verification code sent to your email.");
+      return;
+    }
+
+    await sendEmailNotification("enquiry", pendingContactPayload, { code: values.verification_code });
+    if (db) {
+      const { error } = await db.from("enquiries").insert({
+        name: pendingContactPayload.Name,
+        phone: pendingContactPayload.Phone,
+        email: pendingContactPayload.Email,
+        property_address: pendingContactPayload["Property Address"],
+        message: pendingContactPayload.Message,
+      });
+      if (error) console.warn("Enquiry database insert failed", error);
+    }
     alert("Thank you. Your enquiry has been submitted.");
+    pendingContactPayload = null;
     contactForm.reset();
+    if (contactVerificationPanel) contactVerificationPanel.hidden = true;
+    if (contactSubmitButton) contactSubmitButton.textContent = "Send Verification Code";
     await renderAdminDashboard();
     await renderAdminEnquiries();
   } catch (error) {
+    if (contactSubmitButton) contactSubmitButton.disabled = false;
     alert(`Your enquiry could not be sent automatically. Please try again or contact PMG directly. ${error.message}`);
   }
 });
