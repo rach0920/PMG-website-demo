@@ -592,12 +592,13 @@ async function renderAdminEnquiries() {
     ? `
       <div class="admin-table">
         <div class="admin-table-row admin-table-head">
-          <span>Name</span><span>Email</span><span>Phone</span><span>Location</span><span>IP Ref</span><span>Action</span>
+          <span>Date</span><span>Name</span><span>Email</span><span>Phone</span><span>Location</span><span>IP Ref</span><span>Action</span>
         </div>
         ${enquiries
           .map(
             (item) => `
               <div class="admin-table-row">
+                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
                 <span>${escapeText(item.name)}</span>
                 <span>${escapeText(item.email)}</span>
                 <span>${escapeText(item.phone)}</span>
