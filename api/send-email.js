@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import dns from "node:dns/promises";
 
+const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
 const recipients = (process.env.NOTIFICATION_TO || "rachel@premiummg.com.au,edwin@premiummg.com.au")
   .split(",")
   .map((email) => email.trim())
@@ -32,7 +35,7 @@ function escapeHtml(value) {
 
 function rowsFromObject(data) {
   return Object.entries(data || {})
-    .filter(([key, value]) => key !== "_attachments" && value !== undefined && value !== null && value !== "")
+    .filter(([key, value]) => !key.startsWith("_") && value !== undefined && value !== null && value !== "")
     .map(([key, value]) => {
       const displayValue = typeof value === "object" ? JSON.stringify(value, null, 2) : value;
       return `
@@ -123,6 +126,64 @@ async function hasMailServer(email) {
 
 function hasSpamTrap(payload) {
   return Boolean(payload?.website || payload?.Website);
+}
+
+function header(req, name) {
+  return req.headers?.[name] || req.headers?.[name.toLowerCase()] || "";
+}
+
+function clientIp(req) {
+  return String(header(req, "x-forwarded-for") || header(req, "x-real-ip") || "")
+    .split(",")[0]
+    .trim();
+}
+
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(String(value || ""));
+  } catch {
+    return String(value || "");
+  }
+}
+
+function ipHash(req) {
+  const ip = clientIp(req);
+  if (!ip) return "";
+  const salt = process.env.ANALYTICS_HASH_SALT || SUPABASE_ANON_KEY.slice(0, 24);
+  return crypto.createHash("sha256").update(`${salt}:${ip}`).digest("hex");
+}
+
+function requestMetadata(req) {
+  return {
+    ip_hash: ipHash(req),
+    country: String(header(req, "x-vercel-ip-country") || ""),
+    region: safeDecode(header(req, "x-vercel-ip-country-region")),
+    city: safeDecode(header(req, "x-vercel-ip-city")),
+    user_agent: String(header(req, "user-agent") || "").slice(0, 500),
+  };
+}
+
+async function insertVerifiedEnquiry(payload, metadata) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/enquiries`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify({
+      name: payload.Name || payload.name,
+      phone: payload.Phone || payload.phone,
+      email: payload.Email || payload.email,
+      property_address: payload["Property Address"] || payload.property,
+      message: payload.Message || payload.message,
+      page_path: payload._page_path || null,
+      referrer: payload._referrer || null,
+      ...metadata,
+    }),
+  });
+  if (!response.ok) throw new Error(await response.text());
 }
 
 async function sendResendEmail(message) {
@@ -227,6 +288,7 @@ export default async function handler(req, res) {
       return;
     }
 
+    let verifiedEnquiryMetadata = null;
     if (type === "enquiry") {
       if (hasSpamTrap(payload)) {
         res.status(200).json({ ok: true });
@@ -238,6 +300,8 @@ export default async function handler(req, res) {
         return;
       }
       verifyEnquiryCode(email, code);
+      verifiedEnquiryMetadata = requestMetadata(req);
+      payload._security_note = "Email verified before enquiry was submitted.";
     }
 
     const { subject, html } = buildEmail(type, payload);
@@ -252,6 +316,14 @@ export default async function handler(req, res) {
       subject,
       html,
     });
+
+    if (type === "enquiry" && verifiedEnquiryMetadata) {
+      try {
+        await insertVerifiedEnquiry(payload, verifiedEnquiryMetadata);
+      } catch (error) {
+        console.warn("Verified enquiry metadata insert failed", error);
+      }
+    }
 
     res.status(200).json({ ok: true, id: result.id });
   } catch (error) {

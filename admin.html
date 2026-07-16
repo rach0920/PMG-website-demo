@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260715-email-verification" />
+    <link rel="stylesheet" href="styles.css?v=20260716-analytics" />
   </head>
   <body class="admin-page admin-locked">
     <header class="site-header" data-elevate>
@@ -77,6 +77,10 @@
           <article>
             <span id="enquiryCount">0</span>
             <p>Enquiries</p>
+          </article>
+          <article>
+            <span id="viewCount">0</span>
+            <p>Page Views</p>
           </article>
           <article>
             <span id="applicationCount">0</span>
@@ -337,11 +341,25 @@
         <div>
           <p class="section-kicker">Website Enquiries</p>
           <h2>Contact Form Submissions</h2>
-          <p class="admin-muted">View people who submitted the website contact form.</p>
+          <p class="admin-muted">View people who submitted the website contact form, including security metadata for verified enquiries.</p>
         </div>
         <div class="admin-leads-list" id="adminEnquiriesList"></div>
         <div class="admin-actions">
           <button class="button secondary" type="button" id="clearEnquiries">Clear Enquiries</button>
+        </div>
+      </section>
+
+      <section id="adminAnalytics" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Website Analytics</p>
+          <h2>Visitor Location & Page Views</h2>
+          <p class="admin-muted">
+            Cookie-free analytics for market targeting. IP addresses are stored as hashes, with approximate location only.
+          </p>
+        </div>
+        <div class="admin-leads-list" id="adminAnalyticsList"></div>
+        <div class="admin-actions">
+          <button class="button secondary" type="button" id="clearPageViews">Clear Page Views</button>
         </div>
       </section>
 
@@ -359,6 +377,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260715-email-verification-fix"></script>
+    <script src="script.js?v=20260716-analytics"></script>
   </body>
 </html>

@@ -51,6 +51,7 @@ const adminPropertyList = document.querySelector("#adminPropertyList");
 const propertyEditorForm = document.querySelector("#propertyEditorForm");
 const adminLeadsList = document.querySelector("#adminLeadsList");
 const adminEnquiriesList = document.querySelector("#adminEnquiriesList");
+const adminAnalyticsList = document.querySelector("#adminAnalyticsList");
 const adminApplicationsList = document.querySelector("#adminApplicationsList");
 const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
@@ -403,6 +404,7 @@ async function unlockAdmin() {
   await renderAdminPromotionImages();
   await renderAdminLeads();
   await renderAdminEnquiries();
+  await renderAdminAnalytics();
   await renderAdminApplications();
 }
 
@@ -413,6 +415,7 @@ async function renderAdminDashboard() {
   const properties = await getProperties(true);
   const leads = await getPromotionLeads();
   const enquiries = await getEnquiries();
+  const pageViews = await getPageViews();
   const applications = await getApplications();
   document.querySelector("#teamCount") && (document.querySelector("#teamCount").textContent = String(team.length));
   document.querySelector("#videoCount") && (document.querySelector("#videoCount").textContent = String(videos.length));
@@ -420,6 +423,7 @@ async function renderAdminDashboard() {
   document.querySelector("#propertyCount") && (document.querySelector("#propertyCount").textContent = String(properties.length));
   document.querySelector("#leadCount") && (document.querySelector("#leadCount").textContent = String(leads.length));
   document.querySelector("#enquiryCount") && (document.querySelector("#enquiryCount").textContent = String(enquiries.length));
+  document.querySelector("#viewCount") && (document.querySelector("#viewCount").textContent = String(pageViews.length));
   document.querySelector("#applicationCount") && (document.querySelector("#applicationCount").textContent = String(applications.length));
 }
 
@@ -542,6 +546,12 @@ async function getEnquiries() {
   return error || !data ? [] : data;
 }
 
+async function getPageViews() {
+  if (!db) return [];
+  const { data, error } = await db.from("page_views").select("*").order("created_at", { ascending: false }).limit(500);
+  return error || !data ? [] : data;
+}
+
 async function getApplications() {
   if (!db) return [];
   const { data, error } = await db.from("tenant_applications").select("*").order("created_at", { ascending: false });
@@ -582,7 +592,7 @@ async function renderAdminEnquiries() {
     ? `
       <div class="admin-table">
         <div class="admin-table-row admin-table-head">
-          <span>Name</span><span>Email</span><span>Phone</span><span>Property</span><span>Action</span>
+          <span>Name</span><span>Email</span><span>Phone</span><span>Location</span><span>IP Ref</span><span>Action</span>
         </div>
         ${enquiries
           .map(
@@ -591,7 +601,8 @@ async function renderAdminEnquiries() {
                 <span>${escapeText(item.name)}</span>
                 <span>${escapeText(item.email)}</span>
                 <span>${escapeText(item.phone)}</span>
-                <span>${escapeText(item.property_address)}</span>
+                <span>${escapeText([item.city, item.region, item.country].filter(Boolean).join(", ") || "Unknown")}</span>
+                <span>${escapeText(String(item.ip_hash || "").slice(0, 10) || "N/A")}</span>
                 <span><button class="button secondary compact" type="button" data-delete-enquiry="${item.id}">Delete</button></span>
               </div>
             `
@@ -600,6 +611,54 @@ async function renderAdminEnquiries() {
       </div>
     `
     : `<p class="admin-muted">No website enquiries recorded yet.</p>`;
+}
+
+function groupCounts(items, keyFn) {
+  return [...items.reduce((map, item) => {
+    const key = keyFn(item) || "Unknown";
+    map.set(key, (map.get(key) || 0) + 1);
+    return map;
+  }, new Map())].sort((a, b) => b[1] - a[1]);
+}
+
+async function renderAdminAnalytics() {
+  if (!adminAnalyticsList) return;
+  const views = await getPageViews();
+  const topLocations = groupCounts(views, (item) => [item.city, item.region, item.country].filter(Boolean).join(", ")).slice(0, 8);
+  const topPages = groupCounts(views, (item) => item.path).slice(0, 8);
+  adminAnalyticsList.innerHTML = views.length
+    ? `
+      <div class="admin-analytics-grid">
+        <article class="admin-card">
+          <h3>Top Locations</h3>
+          ${topLocations.map(([label, count]) => `<p class="admin-muted">${escapeText(label)}: ${count}</p>`).join("")}
+        </article>
+        <article class="admin-card">
+          <h3>Top Pages</h3>
+          ${topPages.map(([label, count]) => `<p class="admin-muted">${escapeText(label)}: ${count}</p>`).join("")}
+        </article>
+      </div>
+      <div class="admin-table">
+        <div class="admin-table-row admin-table-head">
+          <span>Date</span><span>Page</span><span>Location</span><span>IP Ref</span><span>Referrer</span>
+        </div>
+        ${views
+          .slice(0, 120)
+          .map(
+            (item) => `
+              <div class="admin-table-row">
+                <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
+                <span>${escapeText(item.path)}</span>
+                <span>${escapeText([item.city, item.region, item.country].filter(Boolean).join(", ") || "Unknown")}</span>
+                <span>${escapeText(String(item.ip_hash || "").slice(0, 10) || "N/A")}</span>
+                <span>${escapeText(item.referrer || "")}</span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : `<p class="admin-muted">No page views recorded yet. Analytics will appear after the live website receives traffic.</p>`;
 }
 
 async function renderAdminApplications() {
@@ -677,6 +736,21 @@ async function requestEnquiryVerification(payload) {
   return postEmailApi({ action: "request-enquiry-verification", payload });
 }
 
+function trackPageView() {
+  if (isAdminPage || location.hostname === "127.0.0.1") return;
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    keepalive: true,
+    body: JSON.stringify({
+      path: `${location.pathname}${location.search}${location.hash}`,
+      referrer: document.referrer,
+      screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
+      language: navigator.language,
+    }),
+  }).catch(() => {});
+}
+
 function openPromoModal() {
   if (!promoModal || !generatedCode) return;
   generatedCode.textContent = "";
@@ -723,6 +797,8 @@ contactForm?.addEventListener("submit", async (event) => {
     "Property Address": values.property,
     Message: values.message,
     website: values.website,
+    _page_path: `${location.pathname}${location.search}${location.hash}`,
+    _referrer: document.referrer,
   };
 
   try {
@@ -745,16 +821,6 @@ contactForm?.addEventListener("submit", async (event) => {
     }
 
     await sendEmailNotification("enquiry", pendingContactPayload, { code: values.verification_code });
-    if (db) {
-      const { error } = await db.from("enquiries").insert({
-        name: pendingContactPayload.Name,
-        phone: pendingContactPayload.Phone,
-        email: pendingContactPayload.Email,
-        property_address: pendingContactPayload["Property Address"],
-        message: pendingContactPayload.Message,
-      });
-      if (error) console.warn("Enquiry database insert failed", error);
-    }
     alert("Thank you. Your enquiry has been submitted.");
     pendingContactPayload = null;
     contactForm.reset();
@@ -1226,6 +1292,17 @@ document.querySelector("#clearEnquiries")?.addEventListener("click", async () =>
   await renderAdminDashboard();
 });
 
+document.querySelector("#clearPageViews")?.addEventListener("click", async () => {
+  if (!confirm("Delete all page view records? This cannot be undone.")) return;
+  const { error } = await db.from("page_views").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) {
+    alert(`Page views could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminAnalytics();
+  await renderAdminDashboard();
+});
+
 adminApplicationsList?.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-delete-application]");
   if (!button) return;
@@ -1285,6 +1362,7 @@ setHeaderState();
   await renderPublicProperties();
   await renderPublicVideos();
   await renderPublicPromotionImages();
+  trackPageView();
   lockAdmin();
   if (db) {
     const { data } = await db.auth.getSession();
