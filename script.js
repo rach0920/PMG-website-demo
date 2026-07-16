@@ -640,19 +640,20 @@ async function renderAdminAnalytics() {
         </article>
       </div>
       <div class="admin-table">
-        <div class="admin-table-row admin-table-head">
-          <span>Date</span><span>Page</span><span>Location</span><span>IP Ref</span><span>Referrer</span>
+        <div class="admin-table-row admin-table-head admin-analytics-row">
+          <span>Date</span><span>Page</span><span>Location</span><span>IP Ref</span><span>Referrer</span><span>Action</span>
         </div>
         ${views
           .slice(0, 120)
           .map(
             (item) => `
-              <div class="admin-table-row">
+              <div class="admin-table-row admin-analytics-row">
                 <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
                 <span>${escapeText(item.path)}</span>
                 <span>${escapeText([item.city, item.region, item.country].filter(Boolean).join(", ") || "Unknown")}</span>
                 <span>${escapeText(String(item.ip_hash || "").slice(0, 10) || "N/A")}</span>
                 <span>${escapeText(item.referrer || "")}</span>
+                <span><button class="button secondary compact" type="button" data-delete-page-view="${item.id}">Delete</button></span>
               </div>
             `
           )
@@ -1298,6 +1299,19 @@ document.querySelector("#clearPageViews")?.addEventListener("click", async () =>
   const { error } = await db.from("page_views").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   if (error) {
     alert(`Page views could not be cleared: ${error.message}`);
+    return;
+  }
+  await renderAdminAnalytics();
+  await renderAdminDashboard();
+});
+
+adminAnalyticsList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete-page-view]");
+  if (!button) return;
+  if (!confirm("Delete this page view record?")) return;
+  const { error } = await db.from("page_views").delete().eq("id", button.dataset.deletePageView);
+  if (error) {
+    alert(`Page view could not be deleted: ${error.message}`);
     return;
   }
   await renderAdminAnalytics();
