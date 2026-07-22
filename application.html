@@ -3,380 +3,127 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Admin | Premium Management Group</title>
-    <meta name="robots" content="noindex, nofollow" />
+    <title>Tenant Application | Premium Management Group</title>
+    <meta
+      name="description"
+      content="Submit a tenant application enquiry to Premium Management Group."
+    />
+    <link rel="canonical" href="https://www.premiummg.com.au/application.html" />
+    <meta property="og:title" content="Tenant Application | Premium Management Group" />
+    <meta property="og:description" content="Start your tenant application with Premium Management Group." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.premiummg.com.au/application.html" />
+    <meta property="og:image" content="https://www.premiummg.com.au/assets/showcase-hd-02.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260722-google-reviews" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="admin-page admin-locked">
+  <body class="application-page">
     <header class="site-header" data-elevate>
       <a class="brand" href="index.html" aria-label="Premium Management Group home">
         <img src="assets/pmg-logo.png" alt="PMG Premium Management Group" />
       </a>
       <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="index.html">Website</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#showcase">Showcase</a>
+        <a href="index.html#team">Team</a>
         <a href="application.html">Tenant Application</a>
+        <a href="index.html#contact">Contact</a>
       </nav>
-      <a class="nav-cta" href="index.html#contact">Contact</a>
+      <a class="nav-cta" href="index.html#contact">Get Appraisal</a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </header>
 
-    <main class="admin-shell">
-      <section id="adminLogin" class="admin-panel">
-        <div>
-          <p class="section-kicker">Admin Access</p>
-          <h1>PMG Website Admin</h1>
-          <p class="admin-muted">Sign in with your Supabase admin email to manage homepage content, team members and promotion videos.</p>
-        </div>
-        <form class="admin-form" id="adminLoginForm">
-          <label>
-            Email
-            <input type="email" name="email" autocomplete="username" required />
-          </label>
-          <label>
-            Password
-            <input type="password" name="password" autocomplete="current-password" required />
-          </label>
-          <button class="button primary full" type="submit">Access Admin</button>
-        </form>
-      </section>
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a href="index.html#about">About</a>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#showcase">Showcase</a>
+      <a href="index.html#team">Team</a>
+      <a href="application.html">Tenant Application</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
 
-      <section id="adminDashboard" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Dashboard</p>
-          <h2>Website Admin Operations</h2>
-          <p class="admin-muted">
-            Manage public website wording, leadership team members, listings, agency promotion videos and image promotions from one place.
+    <main>
+      <section class="page-hero">
+        <div class="hero-media" aria-hidden="true">
+          <img src="assets/showcase-hd-02.png" alt="" />
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="page-hero-content reveal">
+          <p class="eyebrow">Premium Management Group</p>
+          <h1>Tenant Application</h1>
+          <p>
+            Complete the online rental application form and our team will be in touch with the next steps.
           </p>
         </div>
-        <div class="admin-stats">
-          <article>
-            <span id="teamCount">0</span>
-            <p>Team Members</p>
-          </article>
-          <article>
-            <span id="videoCount">0</span>
-            <p>Promotion Videos</p>
-          </article>
-          <article>
-            <span id="imageCount">0</span>
-            <p>Promotion Images</p>
-          </article>
-          <article>
-            <span id="propertyCount">0</span>
-            <p>Properties</p>
-          </article>
-          <article>
-            <span id="leadCount">0</span>
-            <p>Promotion Leads</p>
-          </article>
-          <article>
-            <span id="enquiryCount">0</span>
-            <p>Enquiries</p>
-          </article>
-          <article>
-            <span id="viewCount">0</span>
-            <p>Page Views</p>
-          </article>
-          <article>
-            <span id="applicationCount">0</span>
-            <p>Applications</p>
-          </article>
-          <article>
-            <span>Live</span>
-            <p>Supabase Backend</p>
-          </article>
-        </div>
-        <p class="admin-muted">
-          This admin connects to Supabase Auth, Database and Storage. Changes saved here update the live website.
-        </p>
-        <div class="admin-actions">
-          <a class="button secondary" href="index.html#team">View Team Section</a>
-          <a class="button secondary" href="index.html#for-lease">View Listings</a>
-          <button class="button secondary" type="button" id="adminLogout">Logout</button>
-        </div>
       </section>
 
-      <section id="adminSettings" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Homepage Content</p>
-          <h2>Edit Website Wording</h2>
-          <p class="admin-muted">Update key homepage copy without touching code.</p>
-        </div>
-        <form class="admin-form" id="contentEditorForm">
-          <label>
-            Hero Eyebrow
-            <input name="heroEyebrow" />
-          </label>
-          <label>
-            Hero Slogan
-            <input name="heroTitle" />
-          </label>
-          <label class="full">
-            Hero Subtitle
-            <input name="heroSubtitle" />
-          </label>
-          <label class="full">
-            Video Section Title
-            <input name="videoSectionTitle" />
-          </label>
-          <label class="full">
-            Image Section Title
-            <input name="imageSectionTitle" />
-          </label>
-          <label>
-            Promotion Title
-            <input name="promoTitle" />
-          </label>
-          <label>
-            Promotion Fine Print
-            <input name="promoFinePrint" />
-          </label>
-          <label class="full">
-            Promotion Body
-            <input name="promoBody" />
-          </label>
-          <label class="full">
-            Contact Intro
-            <input name="contactIntro" />
-          </label>
-          <div class="admin-actions">
-            <button class="button primary" type="submit">Save Website Content</button>
-            <button class="button secondary" type="button" id="resetContent">Reset Default Content</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="adminContent" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Editable Content</p>
-          <h2>Leadership Team</h2>
-          <p class="admin-muted">Add, edit, remove and upload photos for team members. Changes are stored in Supabase.</p>
+      <section class="section application-section">
+        <div class="application-intro reveal">
+          <p class="section-kicker">Apply With PMG</p>
+          <h2>Submit your interest for a PMG managed property.</h2>
+          <p>
+            Open the online application form below. When submitted, it will prepare an email to Rachel Han from the
+            applicant's own email account.
+          </p>
+          <a class="button secondary" href="application-form.html">
+            Open Online Application Form
+          </a>
         </div>
 
-        <div class="admin-grid" id="adminTeamList"></div>
-
-        <form class="admin-form" id="teamEditorForm">
-          <input type="hidden" name="index" />
+        <form class="contact-form reveal" id="applicationForm">
           <label>
-            Name
-            <input name="name" required />
-          </label>
-          <label>
-            Position
-            <input name="title" required />
+            Full Name
+            <input name="name" autocomplete="name" required />
           </label>
           <label>
             Phone
-            <input name="phone" required />
+            <input name="phone" autocomplete="tel" required />
           </label>
           <label>
             Email
-            <input type="email" name="email" required />
-          </label>
-          <label class="full">
-            Bio
-            <textarea name="bio" rows="8"></textarea>
-          </label>
-          <label class="full">
-            Photo
-            <input type="file" name="photo" accept="image/*" />
-          </label>
-          <div class="admin-actions">
-            <button class="button primary" type="submit">Save Team Member</button>
-            <button class="button secondary" type="button" id="newTeamMember">Add New</button>
-            <button class="button secondary" type="button" id="resetTeam">Reset Default Team</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="adminProperties" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Property Listings</p>
-          <h2>For Lease & For Sale</h2>
-          <p class="admin-muted">
-            Add, edit and remove properties shown in the For Lease and For Sale sections on the website.
-          </p>
-        </div>
-
-        <div class="admin-grid" id="adminPropertyList"></div>
-
-        <form class="admin-form" id="propertyEditorForm">
-          <input type="hidden" name="index" />
-          <label>
-            Section
-            <select name="listing_type" required>
-              <option value="for_lease">For Lease</option>
-              <option value="for_sale">For Sale</option>
-            </select>
+            <input type="email" name="email" autocomplete="email" required />
           </label>
           <label>
-            Status
-            <select name="status" required>
-              <option value="for lease">For Lease</option>
-              <option value="for sale">For Sale</option>
-              <option value="sold">Sold</option>
-              <option value="under application">Under Application</option>
-              <option value="deposit taken">Deposit Taken</option>
-            </select>
-          </label>
-          <label class="full">
             Property Address
-            <input name="address" required />
+            <input name="property" autocomplete="street-address" required />
           </label>
           <label>
-            Price
-            <input name="price" placeholder="$1,200 per week / Contact Agent" />
+            Preferred Move-in Date
+            <input type="date" name="moveDate" />
           </label>
           <label>
-            Display Order
-            <input type="number" name="sort_order" min="0" step="1" placeholder="1" />
+            Number of Occupants
+            <input type="number" min="1" name="occupants" />
           </label>
           <label class="full">
-            Description
-            <textarea name="description" rows="4"></textarea>
+            Message
+            <textarea name="message" rows="5" placeholder="Employment, pets, inspection details or application notes."></textarea>
           </label>
-          <label class="full">
-            Property Photos
-            <input type="file" name="photos" accept="image/*" multiple />
-          </label>
-          <label class="full">
-            Floorplan
-            <input type="file" name="floorplan" accept="image/*,.pdf" />
-          </label>
-          <div class="admin-actions">
-            <button class="button primary" type="submit">Save Property</button>
-            <button class="button secondary" type="button" id="newProperty">Add New</button>
-            <button class="button secondary" type="button" id="clearProperties">Clear Properties</button>
-          </div>
+          <button class="button primary full" type="submit">Submit Application Enquiry</button>
         </form>
-      </section>
-
-      <section id="adminVideos" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Agency Promotion Videos</p>
-          <h2>Upload Promotion Videos</h2>
-          <p class="admin-muted">Upload campaign, agency promotion or property management videos for the homepage video section.</p>
-        </div>
-
-        <div class="admin-grid" id="adminVideoList"></div>
-
-        <form class="admin-form" id="videoEditorForm">
-          <input type="hidden" name="index" />
-          <label>
-            Video Title
-            <input name="title" required />
-          </label>
-          <label>
-            Short Description
-            <input name="description" />
-          </label>
-          <label class="full">
-            Video File
-            <input type="file" name="video" accept="video/*" />
-          </label>
-          <div class="admin-actions">
-            <button class="button primary" type="submit">Save Video</button>
-            <button class="button secondary" type="button" id="newVideo">New Video</button>
-            <button class="button secondary" type="button" id="clearVideos">Clear Videos</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="adminPromotionImages" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Agency Promotion Images</p>
-          <h2>Upload Promotion Images</h2>
-          <p class="admin-muted">Upload image ads, campaign artwork or property promotion images for the homepage image section.</p>
-        </div>
-
-        <div class="admin-grid" id="adminPromotionImageList"></div>
-
-        <form class="admin-form" id="promotionImageEditorForm">
-          <input type="hidden" name="index" />
-          <label>
-            Image Title
-            <input name="title" required />
-          </label>
-          <label>
-            Short Description
-            <input name="description" />
-          </label>
-          <label class="full">
-            Optional Link
-            <input type="url" name="link_url" placeholder="https://..." />
-          </label>
-          <label class="full">
-            Image File
-            <input type="file" name="image" accept="image/*" />
-          </label>
-          <div class="admin-actions">
-            <button class="button primary" type="submit">Save Image</button>
-            <button class="button secondary" type="button" id="newPromotionImage">New Image</button>
-            <button class="button secondary" type="button" id="clearPromotionImages">Clear Images</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="adminLeads" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Promotion Leads</p>
-          <h2>Claimed Promotion Code Data</h2>
-          <p class="admin-muted">
-            View visitors who submitted their name, email and phone to reveal the fixed promotion code.
-          </p>
-        </div>
-        <div class="admin-leads-list" id="adminLeadsList"></div>
-        <div class="admin-actions">
-          <button class="button secondary" type="button" id="exportLeads">Export CSV</button>
-          <button class="button secondary" type="button" id="clearLeads">Clear Leads</button>
-        </div>
-      </section>
-
-      <section id="adminEnquiries" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Website Enquiries</p>
-          <h2>Contact Form Submissions</h2>
-          <p class="admin-muted">View people who submitted the website contact form, including security metadata for verified enquiries.</p>
-        </div>
-        <div class="admin-leads-list" id="adminEnquiriesList"></div>
-        <div class="admin-actions">
-          <button class="button secondary" type="button" id="clearEnquiries">Clear Enquiries</button>
-        </div>
-      </section>
-
-      <section id="adminAnalytics" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Website Analytics</p>
-          <h2>Visitor Location & Page Views</h2>
-          <p class="admin-muted">
-            Cookie-free analytics for market targeting. IP addresses are stored as hashes, with approximate location only.
-          </p>
-        </div>
-        <div class="admin-leads-list" id="adminAnalyticsList"></div>
-        <div class="admin-actions">
-          <button class="button secondary" type="button" id="clearPageViews">Clear All Page Views</button>
-        </div>
-      </section>
-
-      <section id="adminApplications" class="admin-panel" data-admin-private hidden>
-        <div>
-          <p class="section-kicker">Tenant Applications</p>
-          <h2>Online Application Submissions</h2>
-          <p class="admin-muted">View applications submitted through the tenant application pages.</p>
-        </div>
-        <div class="admin-leads-list" id="adminApplicationsList"></div>
-        <div class="admin-actions">
-          <button class="button secondary" type="button" id="clearApplications">Clear Applications</button>
-        </div>
       </section>
     </main>
 
+    <footer class="site-footer">
+      <img src="assets/pmg-logo.png" alt="PMG Premium Management Group" />
+      <p>Premium Service. Premium Communication. Premium Results.</p>
+      <div>
+        <a class="footer-legal-link" href="admin.html">Admin Login</a>
+        <a class="footer-legal-link" href="disclaimer.html">Website Disclaimer</a>
+        <span>© 2026 Premium Management Group Pty Ltd.</span>
+        <span>All Rights Reserved.</span>
+      </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260722-google-reviews"></script>
+    <script src="script.js"></script>
   </body>
 </html>
