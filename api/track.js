@@ -3,6 +3,9 @@ import crypto from "node:crypto";
 const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
+const SUPABASE_SERVER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+const defaultBlockedMessage =
+  "Access to this website or submission service has been restricted. Please contact Premium Management Group directly.";
 
 function header(req, name) {
   return req.headers?.[name] || req.headers?.[name.toLowerCase()] || "";
@@ -40,6 +43,57 @@ function analyticsMetadata(req) {
   };
 }
 
+function normalize(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizePhone(value) {
+  return String(value || "").replace(/[^\d+]/g, "");
+}
+
+function payloadValue(body, keys) {
+  for (const key of keys) {
+    if (body?.[key]) return body[key];
+    if (body?.payload?.[key]) return body.payload[key];
+  }
+  return "";
+}
+
+function candidateValues(req, body = {}) {
+  return {
+    ip: clientIp(req),
+    email: normalize(payloadValue(body, ["Email", "email"])),
+    phone: normalizePhone(payloadValue(body, ["Phone", "phone"])),
+    name: normalize(payloadValue(body, ["Name", "name"])),
+    address: normalize(payloadValue(body, ["Property Address", "property", "property_address", "address"])),
+  };
+}
+
+async function getBlockedVisitors() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/blocked_visitors?select=match_type,value,message,reason,is_active&is_active=eq.true`,
+    {
+      headers: {
+        apikey: SUPABASE_SERVER_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVER_KEY}`,
+      },
+    }
+  );
+  if (!response.ok) return [];
+  return response.json();
+}
+
+async function blockedVisitor(req, body) {
+  const candidates = candidateValues(req, body);
+  const rules = await getBlockedVisitors();
+  return rules.find((rule) => {
+    const type = normalize(rule.match_type);
+    const ruleValue = type === "phone" ? normalizePhone(rule.value) : normalize(rule.value);
+    if (!type || !ruleValue) return false;
+    return candidates[type] && candidates[type] === ruleValue;
+  });
+}
+
 async function insertPageView(row) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/page_views`, {
     method: "POST",
@@ -62,6 +116,21 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
+    const blocked = await blockedVisitor(req, body);
+    if (blocked) {
+      res.status(200).json({
+        ok: false,
+        blocked: true,
+        message: blocked.message || defaultBlockedMessage,
+      });
+      return;
+    }
+
+    if (body.action === "check-block") {
+      res.status(200).json({ ok: true, blocked: false });
+      return;
+    }
+
     await insertPageView({
       ...analyticsMetadata(req),
       path: String(body.path || "").slice(0, 400),

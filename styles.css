@@ -1299,6 +1299,10 @@ h3 {
   grid-template-columns: 1fr 1fr 1.2fr 0.8fr 1fr 0.9fr 0.7fr 0.65fr;
 }
 
+.admin-blocked-row {
+  grid-template-columns: 1fr 0.8fr 1.2fr 1.3fr 0.7fr 1fr;
+}
+
 .admin-table-row:last-child {
   border-bottom: 0;
 }
@@ -1318,6 +1322,39 @@ h3 {
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.blocked-access-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #000;
+  color: var(--white);
+}
+
+.blocked-access-notice > div {
+  max-width: 680px;
+  border: 1px solid rgba(229, 195, 125, 0.32);
+  padding: clamp(28px, 6vw, 64px);
+  background: linear-gradient(180deg, rgba(15, 26, 42, 0.98), rgba(3, 5, 7, 0.98));
+}
+
+.blocked-access-notice h1 {
+  margin-bottom: 18px;
+  font-size: clamp(42px, 7vw, 82px);
+}
+
+.blocked-access-notice p:last-child {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+body.access-blocked > :not(.blocked-access-notice) {
+  pointer-events: none;
+  user-select: none;
 }
 
 @media (max-width: 1040px) {

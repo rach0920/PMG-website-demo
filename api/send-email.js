@@ -4,6 +4,7 @@ import dns from "node:dns/promises";
 const SUPABASE_URL = "https://caqfpahfforgonprcxhd.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcWZwYWhmZm9yZ29ucHJjeGhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTA0NjQsImV4cCI6MjA5NzA4NjQ2NH0.jJLjEm2l6YDsSZTxC8c0qdRVqF68leOwoG7ayNvQ2VI";
+const SUPABASE_SERVER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
 const recipients = (process.env.NOTIFICATION_TO || "rachel@premiummg.com.au,edwin@premiummg.com.au")
   .split(",")
   .map((email) => email.trim())
@@ -14,6 +15,8 @@ const applicationRecipients = (process.env.APPLICATION_TO || "rachel@premiummg.c
   .filter(Boolean);
 
 const fromEmail = process.env.RESEND_FROM_EMAIL || "PMG Website <onboarding@resend.dev>";
+const defaultBlockedMessage =
+  "Access to this website or submission service has been restricted. Please contact Premium Management Group directly.";
 const verificationStore = (globalThis.__pmgEmailVerificationStore ||= new Map());
 const verificationTtlMs = 10 * 60 * 1000;
 const disposableDomains = new Set([
@@ -164,6 +167,63 @@ function requestMetadata(req) {
   };
 }
 
+function normalize(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizePhone(value) {
+  return String(value || "").replace(/[^\d+]/g, "");
+}
+
+function payloadValue(payload, keys) {
+  for (const key of keys) {
+    if (payload?.[key]) return payload[key];
+  }
+  return "";
+}
+
+function candidateValues(req, payload = {}) {
+  return {
+    ip: clientIp(req),
+    email: normalize(payloadValue(payload, ["Email", "email"])),
+    phone: normalizePhone(payloadValue(payload, ["Phone", "phone"])),
+    name: normalize(payloadValue(payload, ["Name", "name"])),
+    address: normalize(payloadValue(payload, ["Property Address", "property", "property_address", "address"])),
+  };
+}
+
+async function getBlockedVisitors() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/blocked_visitors?select=match_type,value,message,reason,is_active&is_active=eq.true`,
+    {
+      headers: {
+        apikey: SUPABASE_SERVER_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVER_KEY}`,
+      },
+    }
+  );
+  if (!response.ok) return [];
+  return response.json();
+}
+
+async function blockedVisitor(req, payload) {
+  const candidates = candidateValues(req, payload);
+  const rules = await getBlockedVisitors();
+  return rules.find((rule) => {
+    const type = normalize(rule.match_type);
+    const ruleValue = type === "phone" ? normalizePhone(rule.value) : normalize(rule.value);
+    if (!type || !ruleValue) return false;
+    return candidates[type] && candidates[type] === ruleValue;
+  });
+}
+
+function blockedError(rule) {
+  const error = new Error(rule?.message || defaultBlockedMessage);
+  error.status = 403;
+  error.result = { blocked: true, error: error.message };
+  return error;
+}
+
 async function insertVerifiedEnquiry(payload, metadata) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/enquiries`, {
     method: "POST",
@@ -283,6 +343,9 @@ export default async function handler(req, res) {
 
   try {
     const { action, type, payload, code } = req.body || {};
+
+    const blocked = await blockedVisitor(req, payload);
+    if (blocked) throw blockedError(blocked);
 
     if (action === "request-enquiry-verification") {
       res.status(200).json(await requestEnquiryVerification(payload));

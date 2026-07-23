@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260723-real-ip" />
+    <link rel="stylesheet" href="styles.css?v=20260723-blocked-visitors" />
   </head>
   <body class="admin-page admin-locked">
     <header class="site-header" data-elevate>
@@ -85,6 +85,10 @@
           <article>
             <span id="applicationCount">0</span>
             <p>Applications</p>
+          </article>
+          <article>
+            <span id="blockedCount">0</span>
+            <p>Blocked Visitors</p>
           </article>
           <article>
             <span>Live</span>
@@ -354,7 +358,7 @@
           <p class="section-kicker">Website Analytics</p>
           <h2>Visitor Location & Page Views</h2>
           <p class="admin-muted">
-            Cookie-free analytics for market targeting. IP addresses are stored as hashes, with approximate location only.
+            Cookie-free analytics for market targeting. IP addresses and IP references are stored for security review and market analysis.
           </p>
         </div>
         <div class="admin-leads-list" id="adminAnalyticsList"></div>
@@ -374,9 +378,51 @@
           <button class="button secondary" type="button" id="clearApplications">Clear Applications</button>
         </div>
       </section>
+
+      <section id="adminBlockedVisitors" class="admin-panel" data-admin-private hidden>
+        <div>
+          <p class="section-kicker">Access Control</p>
+          <h2>Blocked Visitors</h2>
+          <p class="admin-muted">
+            Add people or IP addresses to restrict access and stop form submissions. Use email, phone or IP address for the most reliable match.
+          </p>
+        </div>
+
+        <div class="admin-leads-list" id="adminBlockedVisitorsList"></div>
+
+        <form class="admin-form" id="blockedVisitorForm">
+          <input type="hidden" name="id" />
+          <label>
+            Block By
+            <select name="match_type" required>
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+              <option value="ip">IP Address</option>
+              <option value="name">Name</option>
+              <option value="address">Property Address</option>
+            </select>
+          </label>
+          <label>
+            Value
+            <input name="value" required placeholder="email, phone, IP, name or address" />
+          </label>
+          <label class="full">
+            Internal Reason
+            <input name="reason" placeholder="Shown only in admin" />
+          </label>
+          <label class="full">
+            Message Shown To Visitor
+            <textarea name="message" rows="3">Access to this website or submission service has been restricted. Please contact Premium Management Group directly.</textarea>
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="submit">Save Block Rule</button>
+            <button class="button secondary" type="button" id="newBlockedVisitor">Add New</button>
+          </div>
+        </form>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260723-real-ip"></script>
+    <script src="script.js?v=20260723-blocked-visitors"></script>
   </body>
 </html>

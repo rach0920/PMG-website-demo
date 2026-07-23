@@ -53,11 +53,15 @@ const adminLeadsList = document.querySelector("#adminLeadsList");
 const adminEnquiriesList = document.querySelector("#adminEnquiriesList");
 const adminAnalyticsList = document.querySelector("#adminAnalyticsList");
 const adminApplicationsList = document.querySelector("#adminApplicationsList");
+const adminBlockedVisitorsList = document.querySelector("#adminBlockedVisitorsList");
+const blockedVisitorForm = document.querySelector("#blockedVisitorForm");
 const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
 const fixedPromoCode = "6MONTHSFREE";
 let pendingContactPayload = null;
+const defaultBlockedMessage =
+  "Access to this website or submission service has been restricted. Please contact Premium Management Group directly.";
 
 const defaultContent = {
   heroEyebrow: "Boutique property management for premium investments",
@@ -417,6 +421,7 @@ async function unlockAdmin() {
   await renderAdminEnquiries();
   await renderAdminAnalytics();
   await renderAdminApplications();
+  await renderAdminBlockedVisitors();
 }
 
 async function renderAdminDashboard() {
@@ -428,6 +433,7 @@ async function renderAdminDashboard() {
   const enquiries = await getEnquiries();
   const pageViews = await getPageViews();
   const applications = await getApplications();
+  const blockedVisitors = await getBlockedVisitors();
   document.querySelector("#teamCount") && (document.querySelector("#teamCount").textContent = String(team.length));
   document.querySelector("#videoCount") && (document.querySelector("#videoCount").textContent = String(videos.length));
   document.querySelector("#imageCount") && (document.querySelector("#imageCount").textContent = String(images.length));
@@ -436,6 +442,7 @@ async function renderAdminDashboard() {
   document.querySelector("#enquiryCount") && (document.querySelector("#enquiryCount").textContent = String(enquiries.length));
   document.querySelector("#viewCount") && (document.querySelector("#viewCount").textContent = String(pageViews.length));
   document.querySelector("#applicationCount") && (document.querySelector("#applicationCount").textContent = String(applications.length));
+  document.querySelector("#blockedCount") && (document.querySelector("#blockedCount").textContent = String(blockedVisitors.length));
 }
 
 async function renderContentEditor() {
@@ -566,6 +573,12 @@ async function getPageViews() {
 async function getApplications() {
   if (!db) return [];
   const { data, error } = await db.from("tenant_applications").select("*").order("created_at", { ascending: false });
+  return error || !data ? [] : data;
+}
+
+async function getBlockedVisitors() {
+  if (!db) return [];
+  const { data, error } = await db.from("blocked_visitors").select("*").order("created_at", { ascending: false });
   return error || !data ? [] : data;
 }
 
@@ -703,6 +716,47 @@ async function renderAdminApplications() {
     : `<p class="admin-muted">No tenant applications recorded yet.</p>`;
 }
 
+function blockTypeLabel(type) {
+  return {
+    email: "Email",
+    phone: "Phone",
+    ip: "IP Address",
+    name: "Name",
+    address: "Property Address",
+  }[String(type || "").toLowerCase()] || type || "Rule";
+}
+
+async function renderAdminBlockedVisitors() {
+  if (!adminBlockedVisitorsList) return;
+  const rules = await getBlockedVisitors();
+  adminBlockedVisitorsList.innerHTML = rules.length
+    ? `
+      <div class="admin-table">
+        <div class="admin-table-row admin-table-head admin-blocked-row">
+          <span>Date</span><span>Block By</span><span>Value</span><span>Reason</span><span>Status</span><span>Action</span>
+        </div>
+        ${rules
+          .map(
+            (rule) => `
+              <div class="admin-table-row admin-blocked-row">
+                <span>${escapeText(new Date(rule.created_at).toLocaleString())}</span>
+                <span>${escapeText(blockTypeLabel(rule.match_type))}</span>
+                <span>${escapeText(rule.value)}</span>
+                <span>${escapeText(rule.reason || "")}</span>
+                <span>${rule.is_active === false ? "Inactive" : "Active"}</span>
+                <span>
+                  <button class="button secondary compact" type="button" data-edit-blocked="${rule.id}">Edit</button>
+                  <button class="button secondary compact" type="button" data-delete-blocked="${rule.id}">Delete</button>
+                </span>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+    `
+    : `<p class="admin-muted">No blocked visitors added yet.</p>`;
+}
+
 async function uploadPublicFile(bucket, file) {
   const ext = file.name.split(".").pop();
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -763,7 +817,49 @@ function trackPageView() {
       screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
       language: navigator.language,
     }),
-  }).catch(() => {});
+  })
+    .then((response) => response.json().catch(() => ({})))
+    .then((result) => {
+      if (result?.blocked) showBlockedAccess(result.message);
+    })
+    .catch(() => {});
+}
+
+function showBlockedAccess(message = defaultBlockedMessage) {
+  document.body.classList.add("access-blocked");
+  let panel = document.querySelector("#blockedAccessNotice");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "blockedAccessNotice";
+    panel.className = "blocked-access-notice";
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML = `
+    <div>
+      <p class="section-kicker">Access Restricted</p>
+      <h1>Access Restricted</h1>
+      <p>${escapeText(message)}</p>
+    </div>
+  `;
+}
+
+async function checkVisitorBlock(payload) {
+  if (location.hostname === "127.0.0.1") return;
+  const response = await fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "check-block",
+      payload,
+      path: `${location.pathname}${location.search}${location.hash}`,
+      referrer: document.referrer,
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (result?.blocked) {
+    showBlockedAccess(result.message);
+    throw new Error(result.message || defaultBlockedMessage);
+  }
 }
 
 function openPromoModal() {
@@ -851,45 +947,56 @@ contactForm?.addEventListener("submit", async (event) => {
 
 promoLeadForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const values = formValues(promoLeadForm);
-  if (db) {
-    await db.from("promotion_leads").insert({
-      name: values.name,
-      email: values.email,
-      phone: values.phone,
-      code: fixedPromoCode,
-    });
-  }
   try {
+    const values = formValues(promoLeadForm);
+    await checkVisitorBlock({
+      Name: values.name,
+      Email: values.email,
+      Phone: values.phone,
+    });
+    if (db) {
+      await db.from("promotion_leads").insert({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        code: fixedPromoCode,
+      });
+    }
     await sendEmailNotification("promotion", {
       Name: values.name,
       Email: values.email,
       Phone: values.phone,
       Code: fixedPromoCode,
     });
+    generatedCode.textContent = fixedPromoCode;
+    promoLeadForm.hidden = true;
+    promoLeadForm.reset();
+    if (promoCodePanel) promoCodePanel.hidden = false;
+    await renderAdminDashboard();
+    await renderAdminLeads();
   } catch (error) {
-    console.warn("Promotion email notification failed", error);
+    alert(error.message || "This promotion claim could not be submitted.");
   }
-  generatedCode.textContent = fixedPromoCode;
-  promoLeadForm.hidden = true;
-  promoLeadForm.reset();
-  if (promoCodePanel) promoCodePanel.hidden = false;
-  await renderAdminDashboard();
-  await renderAdminLeads();
 });
 
 applicationForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const values = formValues(applicationForm);
-  if (db) {
-    await db.from("tenant_applications").insert({
-      applicant_name: values.name,
-      phone: values.phone,
-      email: values.email,
-      property_address: values.property,
-      data: values,
+  try {
+    const values = formValues(applicationForm);
+    await checkVisitorBlock({
+      Name: values.name,
+      Phone: values.phone,
+      Email: values.email,
+      "Property Address": values.property,
     });
-    try {
+    if (db) {
+      await db.from("tenant_applications").insert({
+        applicant_name: values.name,
+        phone: values.phone,
+        email: values.email,
+        property_address: values.property,
+        data: values,
+      });
       await sendEmailNotification("application", {
         Name: values.name,
         Phone: values.phone,
@@ -899,16 +1006,16 @@ applicationForm?.addEventListener("submit", async (event) => {
         Occupants: values.occupants,
         Message: values.message,
       });
-    } catch (error) {
-      console.warn("Application email notification failed", error);
+      alert("Thank you. Your application enquiry has been submitted.");
+      applicationForm.reset();
+      await renderAdminDashboard();
+      await renderAdminApplications();
+      return;
     }
-    alert("Thank you. Your application enquiry has been submitted.");
-    applicationForm.reset();
-    await renderAdminDashboard();
-    await renderAdminApplications();
-    return;
+    alert("Your application could not be submitted automatically. Please try again or contact PMG directly.");
+  } catch (error) {
+    alert(error.message || "Your application could not be submitted automatically.");
   }
-  alert("Your application could not be submitted automatically. Please try again or contact PMG directly.");
 });
 
 adminLoginForm?.addEventListener("submit", async (event) => {
@@ -1353,6 +1460,66 @@ document.querySelector("#clearApplications")?.addEventListener("click", async ()
   }
   await renderAdminApplications();
   await renderAdminDashboard();
+});
+
+adminBlockedVisitorsList?.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-blocked]");
+  const deleteButton = event.target.closest("[data-delete-blocked]");
+  if (editButton && blockedVisitorForm) {
+    const rules = await getBlockedVisitors();
+    const rule = rules.find((item) => item.id === editButton.dataset.editBlocked);
+    if (!rule) return;
+    blockedVisitorForm.elements.id.value = rule.id;
+    blockedVisitorForm.elements.match_type.value = rule.match_type || "email";
+    blockedVisitorForm.elements.value.value = rule.value || "";
+    blockedVisitorForm.elements.reason.value = rule.reason || "";
+    blockedVisitorForm.elements.message.value = rule.message || defaultBlockedMessage;
+    blockedVisitorForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (deleteButton) {
+    if (!confirm("Delete this block rule?")) return;
+    const { error } = await db.from("blocked_visitors").delete().eq("id", deleteButton.dataset.deleteBlocked);
+    if (error) {
+      alert(`Block rule could not be deleted: ${error.message}`);
+      return;
+    }
+    await renderAdminBlockedVisitors();
+    await renderAdminDashboard();
+  }
+});
+
+blockedVisitorForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const values = formValues(blockedVisitorForm);
+  const row = {
+    match_type: values.match_type,
+    value: values.value,
+    reason: values.reason || null,
+    message: values.message || defaultBlockedMessage,
+    is_active: true,
+  };
+  const id = values.id;
+  const { error } = id
+    ? await db.from("blocked_visitors").update(row).eq("id", id)
+    : await db.from("blocked_visitors").insert(row);
+  if (error) {
+    alert(`Block rule could not be saved: ${error.message}`);
+    return;
+  }
+  blockedVisitorForm.reset();
+  blockedVisitorForm.elements.id.value = "";
+  blockedVisitorForm.elements.message.value = defaultBlockedMessage;
+  await renderAdminBlockedVisitors();
+  await renderAdminDashboard();
+  alert("Block rule saved.");
+});
+
+document.querySelector("#newBlockedVisitor")?.addEventListener("click", () => {
+  blockedVisitorForm?.reset();
+  if (blockedVisitorForm) {
+    blockedVisitorForm.elements.id.value = "";
+    blockedVisitorForm.elements.message.value = defaultBlockedMessage;
+  }
 });
 
 document.querySelector("#exportLeads")?.addEventListener("click", async () => {
