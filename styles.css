@@ -463,6 +463,15 @@ h3 {
   border: 1px solid var(--line);
 }
 
+.team-card.no-photo {
+  grid-template-columns: 1fr;
+  min-height: 0;
+}
+
+.team-card.no-photo > div {
+  align-self: center;
+}
+
 .team-photo {
   aspect-ratio: 3 / 4;
   overflow: hidden;
@@ -547,7 +556,8 @@ h3 {
 }
 
 .testimonial-card p {
-  font-size: 19px;
+  font-size: 16px;
+  line-height: 1.68;
 }
 
 .testimonial-card span {
@@ -559,7 +569,10 @@ h3 {
 
 .google-review-card {
   position: relative;
-  grid-column: 1 / -1;
+  grid-column: span 2;
+  display: flex;
+  min-height: 390px;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(229, 195, 125, 0.26);
   background:
@@ -607,34 +620,32 @@ h3 {
 .review-stars {
   position: relative;
   z-index: 1;
-  margin: 22px 0 16px;
+  margin: 20px 0 16px;
   color: #fbbc04;
-  font-size: 20px;
-  letter-spacing: 2px;
+  font-size: 17px;
+  letter-spacing: 1.5px;
 }
 
 .google-review-card p {
   position: relative;
   z-index: 1;
-  max-width: 760px;
-  min-height: 92px;
+  flex: 1;
+  max-width: none;
+  min-height: 0;
   color: var(--white);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(24px, 2.1vw, 34px);
-  line-height: 1.12;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.72;
 }
 
 .long-google-review p {
-  max-width: 1040px;
-  min-height: 0;
-  font-family: Inter, Arial, sans-serif;
-  font-size: clamp(16px, 1.18vw, 19px);
+  font-size: 16px;
   line-height: 1.72;
 }
 
 .long-google-review {
-  grid-column: 1 / -1;
-  padding-right: clamp(28px, 8vw, 120px);
+  grid-column: span 2;
+  padding-right: clamp(22px, 3vw, 34px);
 }
 
 .review-author {
@@ -1347,6 +1358,12 @@ h3 {
   .contact-section,
   .application-section {
     grid-template-columns: 1fr;
+  }
+
+  .google-review-card,
+  .long-google-review {
+    grid-column: 1 / -1;
+    min-height: 0;
   }
 
   .team-card {

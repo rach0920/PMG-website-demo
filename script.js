@@ -92,6 +92,16 @@ const fallbackTeam = [
     bio:
       "With over 30 years of experience in the real estate industry, Edwin Lee has built a career spanning residential property sales, commercial property management, and investment property advice.\n\nEdwin's introduction to real estate came through the family business, where he worked alongside his father and developed a practical understanding of the industry early in his career. Over the years, he has worked with homeowners, investors and commercial property owners across a wide range of transactions, earning a reputation for honest advice and long term relationships.\n\nToday, Edwin is the Founder and Managing Director of Premium Management Group, specialising in Property Sales, Residential and Commercial Property Management. His broad industry experience allows him to understand not only the transaction itself, but also the long-term goals behind every property decision.\n\nClients value Edwin for his straightforward approach, clear communication and ability to navigate both straightforward and complex property matters with confidence. Whether representing a property sale or overseeing a commercial asset, his focus remains the same to provide reliable advice, strong representation, and a level of service clients can rely on.",
   },
+  {
+    id: "fallback-james",
+    name: "James Mitchell",
+    title: "Office Support",
+    phone: "",
+    email: "info@premiummg.com.au",
+    photo_url: "",
+    bio:
+      "James joined Premium Management Group (PMG) bringing several years of administrative and customer service experience across the property and real estate sector. He plays a key role in keeping the agency's day-to-day operations running smoothly - coordinating documentation, liaising with landlords, tenants and external agencies, and ensuring nothing falls through the cracks during busy periods. Known for his organisational skills and calm, professional manner, James is a trusted point of contact for clients seeking timely and accurate support. Outside of his administrative role, he has a strong interest in process improvement and is always looking for ways to make the client experience simpler and more efficient.",
+  },
 ];
 
 const fallbackVideos = [
@@ -207,7 +217,10 @@ async function getTeamMembers(includeInactive = false) {
   if (!includeInactive) query = query.eq("is_active", true);
   const { data, error } = await query;
   if (error || !data || !data.length) return fallbackTeam;
-  return data;
+  if (includeInactive) return data;
+  const existingNames = new Set(data.map((member) => String(member.name || "").toLowerCase()));
+  const missingFallbackMembers = fallbackTeam.filter((member) => !existingNames.has(member.name.toLowerCase()));
+  return [...data, ...missingFallbackMembers];
 }
 
 async function getVideos(includeInactive = false) {
@@ -255,20 +268,18 @@ async function renderPublicTeam() {
   teamGrid.innerHTML = team
     .map(
       (member) => `
-        <article class="team-card reveal is-visible">
-          <div class="${teamPhotoClass(member)}">
-            ${
-              teamPhotoUrl(member)
-                ? `<img src="${teamPhotoUrl(member)}" alt="${escapeText(member.name)}" />`
-                : `<div class="team-photo-placeholder" aria-label="${escapeText(member.name)} photo placeholder">${initials(member.name)}</div>`
-            }
-          </div>
+        <article class="team-card${teamPhotoUrl(member) ? "" : " no-photo"} reveal is-visible">
+          ${
+            teamPhotoUrl(member)
+              ? `<div class="${teamPhotoClass(member)}"><img src="${teamPhotoUrl(member)}" alt="${escapeText(member.name)}" /></div>`
+              : ""
+          }
           <div>
             <p class="team-role">${escapeText(teamTitle(member))}</p>
             <h3>${escapeText(member.name)}</h3>
             ${teamBio(member) ? `<div class="team-bio">${bioParagraphs(teamBio(member))}</div>` : ""}
-            <a href="tel:${String(member.phone || "").replace(/\s/g, "")}">${escapeText(member.phone)}</a>
-            <a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>
+            ${member.phone ? `<a href="tel:${String(member.phone || "").replace(/\s/g, "")}">${escapeText(member.phone)}</a>` : ""}
+            ${member.email ? `<a href="mailto:${member.email}?subject=PMG%20Property%20Management%20Enquiry">${escapeText(member.email)}</a>` : ""}
           </div>
         </article>
       `
