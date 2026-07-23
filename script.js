@@ -602,18 +602,19 @@ async function renderAdminEnquiries() {
   adminEnquiriesList.innerHTML = enquiries.length
     ? `
       <div class="admin-table">
-        <div class="admin-table-row admin-table-head">
-          <span>Date</span><span>Name</span><span>Email</span><span>Phone</span><span>Location</span><span>IP Ref</span><span>Action</span>
+        <div class="admin-table-row admin-table-head admin-enquiry-row">
+          <span>Date</span><span>Name</span><span>Email</span><span>Phone</span><span>Location</span><span>IP Address</span><span>IP Ref</span><span>Action</span>
         </div>
         ${enquiries
           .map(
             (item) => `
-              <div class="admin-table-row">
+              <div class="admin-table-row admin-enquiry-row">
                 <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
                 <span>${escapeText(item.name)}</span>
                 <span>${escapeText(item.email)}</span>
                 <span>${escapeText(item.phone)}</span>
                 <span>${escapeText([item.city, item.region, item.country].filter(Boolean).join(", ") || "Unknown")}</span>
+                <span>${escapeText(item.ip_address || "N/A")}</span>
                 <span>${escapeText(String(item.ip_hash || "").slice(0, 10) || "N/A")}</span>
                 <span><button class="button secondary compact" type="button" data-delete-enquiry="${item.id}">Delete</button></span>
               </div>
@@ -652,7 +653,7 @@ async function renderAdminAnalytics() {
       </div>
       <div class="admin-table">
         <div class="admin-table-row admin-table-head admin-analytics-row">
-          <span>Date</span><span>Page</span><span>Location</span><span>IP Ref</span><span>Referrer</span><span>Action</span>
+          <span>Date</span><span>Page</span><span>Location</span><span>IP Address</span><span>IP Ref</span><span>Referrer</span><span>Action</span>
         </div>
         ${views
           .slice(0, 120)
@@ -662,6 +663,7 @@ async function renderAdminAnalytics() {
                 <span>${escapeText(new Date(item.created_at).toLocaleString())}</span>
                 <span>${escapeText(item.path)}</span>
                 <span>${escapeText([item.city, item.region, item.country].filter(Boolean).join(", ") || "Unknown")}</span>
+                <span>${escapeText(item.ip_address || "N/A")}</span>
                 <span>${escapeText(String(item.ip_hash || "").slice(0, 10) || "N/A")}</span>
                 <span>${escapeText(item.referrer || "")}</span>
                 <span><button class="button secondary compact" type="button" data-delete-page-view="${item.id}">Delete</button></span>

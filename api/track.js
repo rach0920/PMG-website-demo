@@ -31,6 +31,7 @@ function ipHash(req) {
 
 function analyticsMetadata(req) {
   return {
+    ip_address: clientIp(req),
     ip_hash: ipHash(req),
     country: String(header(req, "x-vercel-ip-country") || ""),
     region: safeDecode(header(req, "x-vercel-ip-country-region")),

@@ -1,4 +1,5 @@
 alter table public.enquiries
+add column if not exists ip_address text,
 add column if not exists ip_hash text,
 add column if not exists country text,
 add column if not exists region text,
@@ -14,12 +15,16 @@ create table if not exists public.page_views (
   referrer text,
   screen text,
   language text,
+  ip_address text,
   ip_hash text,
   country text,
   region text,
   city text,
   user_agent text
 );
+
+alter table public.page_views
+add column if not exists ip_address text;
 
 alter table public.page_views enable row level security;
 
