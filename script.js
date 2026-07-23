@@ -97,7 +97,7 @@ const fallbackTeam = [
     name: "James Mitchell",
     title: "Office Support",
     phone: "",
-    email: "info@premiummg.com.au",
+    email: "admin@premiummg.com.au",
     photo_url: "",
     bio:
       "James joined Premium Management Group (PMG) bringing several years of administrative and customer service experience across the property and real estate sector. He plays a key role in keeping the agency's day-to-day operations running smoothly - coordinating documentation, liaising with landlords, tenants and external agencies, and ensuring nothing falls through the cracks during busy periods. Known for his organisational skills and calm, professional manner, James is a trusted point of contact for clients seeking timely and accurate support. Outside of his administrative role, he has a strong interest in process improvement and is always looking for ways to make the client experience simpler and more efficient.",
