@@ -626,13 +626,17 @@ h3 {
   letter-spacing: 1.5px;
 }
 
+.testimonial-stars {
+  margin: 0 0 18px;
+}
+
 .google-review-card p {
   position: relative;
   z-index: 1;
   flex: 1;
   max-width: none;
   min-height: 0;
-  color: var(--white);
+  color: var(--muted);
   font-family: Inter, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.72;
@@ -671,8 +675,10 @@ h3 {
 
 .review-author strong {
   display: block;
-  color: var(--white);
+  color: var(--gold-light);
   font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .review-author small {
