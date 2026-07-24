@@ -556,8 +556,11 @@ h3 {
 }
 
 .testimonial-card p {
+  color: #b8cce3;
+  font-family: Inter, Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.68;
+  font-weight: 500;
+  line-height: 1.72;
 }
 
 .testimonial-card span {
@@ -628,6 +631,9 @@ h3 {
 
 .testimonial-stars {
   margin: 0 0 18px;
+  color: #fbbc04;
+  font-size: 17px;
+  letter-spacing: 1.5px;
 }
 
 .google-review-card p {
@@ -636,9 +642,10 @@ h3 {
   flex: 1;
   max-width: none;
   min-height: 0;
-  color: var(--muted);
+  color: #b8cce3;
   font-family: Inter, Arial, sans-serif;
   font-size: 16px;
+  font-weight: 500;
   line-height: 1.72;
 }
 
@@ -678,6 +685,7 @@ h3 {
   color: var(--gold-light);
   font-size: 14px;
   font-weight: 900;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
