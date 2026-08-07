@@ -163,7 +163,7 @@ const fallbackProperties = [
       "assets/dalmeny-ave/living-dining-01.jpg",
       "assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg",
       "assets/dalmeny-ave/balcony.jpg",
-      "assets/dalmeny-ave/bathroom.jpg",
+      "assets/dalmeny-ave/bathroom-reflection.png",
       "assets/dalmeny-ave/laundry.jpg",
       "assets/dalmeny-ave/living-dining-02.jpg",
     ],
