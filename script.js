@@ -163,7 +163,7 @@ const fallbackProperties = [
       "assets/dalmeny-ave/living-dining-01.jpg",
       "assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg",
       "assets/dalmeny-ave/balcony.jpg",
-      "assets/dalmeny-ave/bathroom-reflection.png",
+      "https://caqfpahfforgonprcxhd.supabase.co/storage/v1/object/public/promotion-videos/property-videos/bathroom.png",
       "assets/dalmeny-ave/laundry.jpg",
       "assets/dalmeny-ave/living-dining-02.jpg",
     ],
