@@ -21,7 +21,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260724-review-final" />
+    <link rel="stylesheet" href="styles.css?v=20260724-review-cachefix" />
   </head>
   <body>
     <header class="site-header" data-elevate>
@@ -173,8 +173,51 @@
           <h2>Premium rental opportunities managed with PMG's signature standard.</h2>
         </div>
         <div class="property-grid" id="leaseGrid" data-property-grid="for_lease">
-          <article class="property-empty reveal">
-            <p>Current leasing opportunities will be updated soon.</p>
+          <article class="property-card reveal is-visible">
+            <div class="property-media">
+              <img src="assets/dalmeny-ave/living-dining-01.jpg" alt="213/95 Dalmeny Avenue Rosebery living and dining area" loading="lazy" />
+              <span class="property-status">For Lease</span>
+            </div>
+            <div class="property-thumbs">
+              <img src="assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg" alt="213/95 Dalmeny Avenue bedroom" loading="lazy" />
+              <img src="assets/dalmeny-ave/balcony.jpg" alt="213/95 Dalmeny Avenue balcony" loading="lazy" />
+              <img src="assets/dalmeny-ave/bathroom.jpg" alt="213/95 Dalmeny Avenue bathroom" loading="lazy" />
+              <img src="assets/dalmeny-ave/laundry.jpg" alt="213/95 Dalmeny Avenue laundry" loading="lazy" />
+              <img src="assets/dalmeny-ave/living-dining-02.jpg" alt="213/95 Dalmeny Avenue living room" loading="lazy" />
+            </div>
+            <div class="property-content">
+              <h3>Stylish One-Bedroom Living in the Heart of Rosebery</h3>
+              <p class="property-address">213/95 Dalmeny Avenue, Rosebery, NSW 2018</p>
+              <p class="property-price">$770 per week</p>
+              <div class="property-meta">
+                <span>Available 14 August 2026</span>
+                <span>Open Inspection: 8 August 2026, 10:00 am - 10:15 am</span>
+              </div>
+              <div class="property-description">
+                <p>Stylish One-Bedroom Living in the Heart of Rosebery</p>
+                <p>Disclaimer: Furniture shown in the photos is for presentation purposes only and is not included. The property is offered unfurnished.</p>
+                <p>Set in a well-maintained security building just moments from Rosebery's cafes, parks, and transport, this unfurnished one-bedroom apartment offers a comfortable, low-maintenance lifestyle in one of Sydney's most sought-after inner-city pockets.</p>
+                <p>The open-plan living and dining area flows out to a private balcony, ideal for morning coffee or evening relaxation. The kitchen is well-appointed with quality appliances, and the generous bedroom includes built-in storage. The bathroom is clean and modern, complete with a shower and separate bath.</p>
+                <p>Features include:</p>
+                <ul class="property-features">
+                  <li>One bedroom with built-in wardrobe</li>
+                  <li>One bathroom with shower</li>
+                  <li>Open-plan living and dining area</li>
+                  <li>Private balcony</li>
+                  <li>Unfurnished</li>
+                  <li>Well-maintained security building</li>
+                </ul>
+                <p>Perfectly positioned close to Rosebery's shopping village, Australia Design Centre, local parks, and public transport, with easy access to the CBD and Sydney Airport.</p>
+                <p>Contact us today to arrange an inspection.</p>
+              </div>
+              <div class="property-virtual-tour">
+                <h4>Virtual tour</h4>
+                <video src="assets/dalmeny-ave/virtual-tour.mp4" controls playsinline preload="metadata"></video>
+              </div>
+              <div class="property-actions">
+                <a class="property-floorplan-link" href="assets/dalmeny-ave/floorplan-apartment-213.jpg" target="_blank" rel="noopener">View Floorplan</a>
+              </div>
+            </div>
           </article>
         </div>
       </section>
@@ -425,6 +468,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260724-review-final"></script>
+    <script src="script.js?v=20260724-review-cachefix"></script>
   </body>
 </html>

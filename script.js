@@ -142,6 +142,33 @@ const propertyStatusLabels = {
   "deposit taken": "Deposit Taken",
 };
 
+const fallbackProperties = [
+  {
+    id: "fallback-dalmeny-ave-rosebery-213",
+    listing_type: "for_lease",
+    status: "for lease",
+    title: "Stylish One-Bedroom Living in the Heart of Rosebery",
+    address: "213/95 Dalmeny Avenue, Rosebery, NSW 2018",
+    price: "$770 per week",
+    available_date: "Available 14 August 2026",
+    inspection_time: "Open Inspection: 8 August 2026, 10:00 am - 10:15 am",
+    description:
+      "Stylish One-Bedroom Living in the Heart of Rosebery\n\nDisclaimer: Furniture shown in the photos is for presentation purposes only and is not included. The property is offered unfurnished.\n\nSet in a well-maintained security building just moments from Rosebery's cafes, parks, and transport, this unfurnished one-bedroom apartment offers a comfortable, low-maintenance lifestyle in one of Sydney's most sought-after inner-city pockets.\n\nThe open-plan living and dining area flows out to a private balcony, ideal for morning coffee or evening relaxation. The kitchen is well-appointed with quality appliances, and the generous bedroom includes built-in storage. The bathroom is clean and modern, complete with a shower and separate bath.\n\nFeatures include:\n- One bedroom with built-in wardrobe\n- One bathroom with shower\n- Open-plan living and dining area\n- Private balcony\n- Unfurnished\n- Well-maintained security building\n\nPerfectly positioned close to Rosebery's shopping village, Australia Design Centre, local parks, and public transport, with easy access to the CBD and Sydney Airport.\n\nContact us today to arrange an inspection.",
+    photo_urls: [
+      "assets/dalmeny-ave/living-dining-01.jpg",
+      "assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg",
+      "assets/dalmeny-ave/balcony.jpg",
+      "assets/dalmeny-ave/bathroom.jpg",
+      "assets/dalmeny-ave/laundry.jpg",
+      "assets/dalmeny-ave/living-dining-02.jpg",
+    ],
+    floorplan_url: "assets/dalmeny-ave/floorplan-apartment-213.jpg",
+    virtual_tour_url: "assets/dalmeny-ave/virtual-tour.mp4",
+    sort_order: 1,
+    is_active: true,
+  },
+];
+
 function escapeText(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -248,11 +275,30 @@ async function getPromotionImages(includeInactive = false) {
 }
 
 async function getProperties(includeInactive = false) {
-  if (!db) return [];
+  if (!db) return includeInactive ? [] : fallbackProperties;
   let query = db.from("properties").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: false });
   if (!includeInactive) query = query.eq("is_active", true);
   const { data, error } = await query;
-  return error || !data ? [] : data;
+  if (includeInactive) return error || !data ? [] : data;
+  if (error || !data) return fallbackProperties;
+  const mergedData = data.map((property) => {
+    const fallback = fallbackProperties.find((item) => item.address.toLowerCase() === String(property.address || "").toLowerCase());
+    if (!fallback) return property;
+    return {
+      ...fallback,
+      ...property,
+      title: property.title || fallback.title,
+      description: fallback.description,
+      photo_urls: Array.isArray(property.photo_urls) && property.photo_urls.length ? property.photo_urls : fallback.photo_urls,
+      floorplan_url: property.floorplan_url || fallback.floorplan_url,
+      virtual_tour_url: property.virtual_tour_url || fallback.virtual_tour_url,
+      available_date: property.available_date || fallback.available_date,
+      inspection_time: property.inspection_time || fallback.inspection_time,
+    };
+  });
+  const existingAddresses = new Set(mergedData.map((property) => String(property.address || "").toLowerCase()));
+  const missingFallbackProperties = fallbackProperties.filter((property) => !existingAddresses.has(property.address.toLowerCase()));
+  return [...missingFallbackProperties, ...mergedData];
 }
 
 function renderContent(content) {
@@ -349,30 +395,85 @@ function propertyPhoto(property) {
   return photos[0] || "";
 }
 
+function propertyPhotos(property) {
+  return Array.isArray(property.photo_urls) ? property.photo_urls.filter(Boolean) : [];
+}
+
 function propertyStatusText(status) {
   return propertyStatusLabels[String(status || "").toLowerCase()] || status || "Available";
 }
 
-async function renderPublicProperties() {
+function propertyDescriptionMarkup(description) {
+  const blocks = String(description || "")
+    .split(/\n+/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  const html = [];
+  let listItems = [];
+  blocks.forEach((block) => {
+    if (block.startsWith("- ")) {
+      listItems.push(`<li>${escapeText(block.slice(2))}</li>`);
+      return;
+    }
+    if (listItems.length) {
+      html.push(`<ul class="property-features">${listItems.join("")}</ul>`);
+      listItems = [];
+    }
+    html.push(`<p>${escapeText(block)}</p>`);
+  });
+  if (listItems.length) html.push(`<ul class="property-features">${listItems.join("")}</ul>`);
+  return html.join("");
+}
+
+function renderPropertyGridItems(properties) {
   if (!propertyGrids.length) return;
-  const properties = await getProperties(false);
   propertyGrids.forEach((grid) => {
     const listingType = grid.dataset.propertyGrid;
-    const items = properties.filter((property) => property.listing_type === listingType);
+    const baseItems = fallbackProperties.filter((property) => property.listing_type === listingType);
+    const remoteItems = properties.filter((property) => property.listing_type === listingType);
+    const seenAddresses = new Set();
+    const items = [...baseItems, ...remoteItems].filter((property) => {
+      const key = String(property.address || property.id || "").toLowerCase();
+      if (seenAddresses.has(key)) return false;
+      seenAddresses.add(key);
+      return true;
+    });
     grid.innerHTML = items.length
       ? items
           .map((property) => {
-            const photo = propertyPhoto(property);
+            const photos = propertyPhotos(property);
+            const photo = photos[0] || "";
             return `
               <article class="property-card reveal is-visible">
                 <div class="property-media">
                   ${photo ? `<img src="${photo}" alt="${escapeText(property.address)}" loading="lazy" />` : ""}
                   <span class="property-status">${escapeText(propertyStatusText(property.status))}</span>
                 </div>
-                <div class="property-content">
-                  <h3>${escapeText(property.address)}</h3>
+                ${
+                  photos.length > 1
+                    ? `<div class="property-thumbs">${photos
+                        .slice(1, 6)
+                        .map((item) => `<img src="${item}" alt="${escapeText(property.address)} image" loading="lazy" />`)
+                        .join("")}</div>`
+                    : ""
+                }
+                  <div class="property-content">
+                  <h3>${escapeText(property.title || property.address)}</h3>
+                  ${property.title && property.address ? `<p class="property-address">${escapeText(property.address)}</p>` : ""}
                   ${property.price ? `<p class="property-price">${escapeText(property.price)}</p>` : ""}
-                  ${property.description ? `<p>${escapeText(property.description)}</p>` : ""}
+                  <div class="property-meta">
+                    ${property.available_date ? `<span>${escapeText(property.available_date)}</span>` : ""}
+                    ${property.inspection_time ? `<span>${escapeText(property.inspection_time)}</span>` : ""}
+                  </div>
+                  ${property.description ? `<div class="property-description">${propertyDescriptionMarkup(property.description)}</div>` : ""}
+                  ${
+                    property.virtual_tour_url
+                      ? `<div class="property-virtual-tour">
+                          <h4>Virtual tour</h4>
+                          <video src="${property.virtual_tour_url}" controls playsinline preload="metadata"></video>
+                        </div>`
+                      : ""
+                  }
                   ${
                     property.floorplan_url
                       ? `<div class="property-actions"><a class="property-floorplan-link" href="${property.floorplan_url}" target="_blank" rel="noopener">View Floorplan</a></div>`
@@ -385,6 +486,13 @@ async function renderPublicProperties() {
           .join("")
       : `<article class="property-empty reveal is-visible"><p>Current ${listingType === "for_lease" ? "leasing" : "sales"} opportunities will be updated soon.</p></article>`;
   });
+}
+
+async function renderPublicProperties() {
+  if (!propertyGrids.length) return;
+  renderPropertyGridItems(fallbackProperties);
+  const properties = await getProperties(false);
+  renderPropertyGridItems(properties);
 }
 
 function lockAdmin() {
