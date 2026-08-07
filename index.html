@@ -173,17 +173,30 @@
           <h2>Premium rental opportunities managed with PMG's signature standard.</h2>
         </div>
         <div class="property-grid" id="leaseGrid" data-property-grid="for_lease">
-          <article class="property-card reveal is-visible">
+          <article class="property-card reveal is-visible" data-property-gallery>
             <div class="property-media">
-              <img src="assets/dalmeny-ave/living-dining-01.jpg" alt="213/95 Dalmeny Avenue Rosebery living and dining area" loading="lazy" />
+              <button class="property-gallery-trigger" type="button" data-gallery-image="assets/dalmeny-ave/living-dining-01.jpg" aria-label="View 213/95 Dalmeny Avenue living and dining area">
+                <img src="assets/dalmeny-ave/living-dining-01.jpg" alt="213/95 Dalmeny Avenue Rosebery living and dining area" loading="lazy" />
+              </button>
               <span class="property-status">For Lease</span>
+              <span class="property-view-gallery">View Photos</span>
             </div>
             <div class="property-thumbs">
-              <img src="assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg" alt="213/95 Dalmeny Avenue bedroom" loading="lazy" />
-              <img src="assets/dalmeny-ave/balcony.jpg" alt="213/95 Dalmeny Avenue balcony" loading="lazy" />
-              <img src="assets/dalmeny-ave/bathroom.jpg" alt="213/95 Dalmeny Avenue bathroom" loading="lazy" />
-              <img src="assets/dalmeny-ave/laundry.jpg" alt="213/95 Dalmeny Avenue laundry" loading="lazy" />
-              <img src="assets/dalmeny-ave/living-dining-02.jpg" alt="213/95 Dalmeny Avenue living room" loading="lazy" />
+              <button class="property-thumb-trigger" type="button" data-gallery-image="assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg" aria-label="View 213/95 Dalmeny Avenue bedroom">
+                <img src="assets/dalmeny-ave/213-dalmeny-bedroom-alt.jpg" alt="213/95 Dalmeny Avenue bedroom" loading="lazy" />
+              </button>
+              <button class="property-thumb-trigger" type="button" data-gallery-image="assets/dalmeny-ave/balcony.jpg" aria-label="View 213/95 Dalmeny Avenue balcony">
+                <img src="assets/dalmeny-ave/balcony.jpg" alt="213/95 Dalmeny Avenue balcony" loading="lazy" />
+              </button>
+              <button class="property-thumb-trigger" type="button" data-gallery-image="assets/dalmeny-ave/bathroom.jpg" aria-label="View 213/95 Dalmeny Avenue bathroom">
+                <img src="assets/dalmeny-ave/bathroom.jpg" alt="213/95 Dalmeny Avenue bathroom" loading="lazy" />
+              </button>
+              <button class="property-thumb-trigger" type="button" data-gallery-image="assets/dalmeny-ave/laundry.jpg" aria-label="View 213/95 Dalmeny Avenue laundry">
+                <img src="assets/dalmeny-ave/laundry.jpg" alt="213/95 Dalmeny Avenue laundry" loading="lazy" />
+              </button>
+              <button class="property-thumb-trigger" type="button" data-gallery-image="assets/dalmeny-ave/living-dining-02.jpg" aria-label="View 213/95 Dalmeny Avenue living room">
+                <img src="assets/dalmeny-ave/living-dining-02.jpg" alt="213/95 Dalmeny Avenue living room" loading="lazy" />
+              </button>
             </div>
             <div class="property-content">
               <h3>Stylish One-Bedroom Living in the Heart of Rosebery</h3>
@@ -467,7 +480,17 @@
       </div>
     </div>
 
+    <div class="property-lightbox" id="propertyLightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Property photo gallery">
+      <button class="property-lightbox-close" type="button" data-close-property-gallery aria-label="Close gallery">x</button>
+      <button class="property-lightbox-nav previous" type="button" data-gallery-prev aria-label="Previous photo">‹</button>
+      <figure class="property-lightbox-figure">
+        <img id="propertyLightboxImage" src="" alt="Property photo enlarged view" />
+        <figcaption id="propertyLightboxCaption"></figcaption>
+      </figure>
+      <button class="property-lightbox-nav next" type="button" data-gallery-next aria-label="Next photo">›</button>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="script.js?v=20260724-review-cachefix"></script>
+    <script src="script.js?v=20260807-property-gallery"></script>
   </body>
 </html>

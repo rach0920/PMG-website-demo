@@ -56,10 +56,15 @@ const adminApplicationsList = document.querySelector("#adminApplicationsList");
 const adminBlockedVisitorsList = document.querySelector("#adminBlockedVisitorsList");
 const blockedVisitorForm = document.querySelector("#blockedVisitorForm");
 const adminPrivateSections = document.querySelectorAll("[data-admin-private]");
+const propertyLightbox = document.querySelector("#propertyLightbox");
+const propertyLightboxImage = document.querySelector("#propertyLightboxImage");
+const propertyLightboxCaption = document.querySelector("#propertyLightboxCaption");
 
 const recipients = "rachel@premiummg.com.au,edwin@premiummg.com.au";
 const fixedPromoCode = "6MONTHSFREE";
 let pendingContactPayload = null;
+let activeGalleryImages = [];
+let activeGalleryIndex = 0;
 const defaultBlockedMessage =
   "Access to this website or submission service has been restricted. Please contact Premium Management Group directly.";
 
@@ -425,6 +430,57 @@ function propertyDescriptionMarkup(description) {
   return html.join("");
 }
 
+function galleryImageButton(src, alt, className = "property-gallery-trigger") {
+  return `
+    <button class="${className}" type="button" data-gallery-image="${escapeText(src)}" aria-label="View ${escapeText(alt)}">
+      <img src="${escapeText(src)}" alt="${escapeText(alt)}" loading="lazy" />
+    </button>
+  `;
+}
+
+function setPropertyLightboxImage() {
+  if (!propertyLightboxImage || !propertyLightboxCaption || !activeGalleryImages.length) return;
+  const image = activeGalleryImages[activeGalleryIndex];
+  propertyLightboxImage.src = image.src;
+  propertyLightboxImage.alt = image.alt || "Property photo enlarged view";
+  propertyLightboxCaption.textContent = `${activeGalleryIndex + 1} / ${activeGalleryImages.length}`;
+}
+
+function openPropertyGallery(trigger) {
+  if (!propertyLightbox || !trigger) return;
+  const gallery = trigger.closest("[data-property-gallery]");
+  const buttons = Array.from(gallery?.querySelectorAll("[data-gallery-image]") || []);
+  activeGalleryImages = buttons.map((button) => ({
+    src: button.dataset.galleryImage,
+    alt: button.querySelector("img")?.alt || button.getAttribute("aria-label") || "Property photo",
+  }));
+  activeGalleryIndex = Math.max(
+    0,
+    activeGalleryImages.findIndex((image) => image.src === trigger.dataset.galleryImage)
+  );
+  if (!activeGalleryImages.length) return;
+  setPropertyLightboxImage();
+  propertyLightbox.classList.add("is-open");
+  propertyLightbox.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+}
+
+function closePropertyGallery() {
+  if (!propertyLightbox) return;
+  propertyLightbox.classList.remove("is-open");
+  propertyLightbox.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  activeGalleryImages = [];
+  activeGalleryIndex = 0;
+  if (propertyLightboxImage) propertyLightboxImage.src = "";
+}
+
+function movePropertyGallery(direction) {
+  if (!activeGalleryImages.length) return;
+  activeGalleryIndex = (activeGalleryIndex + direction + activeGalleryImages.length) % activeGalleryImages.length;
+  setPropertyLightboxImage();
+}
+
 function renderPropertyGridItems(properties) {
   if (!propertyGrids.length) return;
   propertyGrids.forEach((grid) => {
@@ -444,16 +500,17 @@ function renderPropertyGridItems(properties) {
             const photos = propertyPhotos(property);
             const photo = photos[0] || "";
             return `
-              <article class="property-card reveal is-visible">
+              <article class="property-card reveal is-visible" data-property-gallery>
                 <div class="property-media">
-                  ${photo ? `<img src="${photo}" alt="${escapeText(property.address)}" loading="lazy" />` : ""}
+                  ${photo ? galleryImageButton(photo, property.address || property.title || "Property photo") : ""}
                   <span class="property-status">${escapeText(propertyStatusText(property.status))}</span>
+                  ${photos.length ? `<span class="property-view-gallery">View Photos</span>` : ""}
                 </div>
                 ${
                   photos.length > 1
                     ? `<div class="property-thumbs">${photos
                         .slice(1, 6)
-                        .map((item) => `<img src="${item}" alt="${escapeText(property.address)} image" loading="lazy" />`)
+                        .map((item) => galleryImageButton(item, `${property.address || property.title || "Property"} image`, "property-thumb-trigger"))
                         .join("")}</div>`
                     : ""
                 }
@@ -1004,7 +1061,22 @@ mobileNav?.querySelectorAll("a").forEach((link) => {
 promoButtons.forEach((button) => button.addEventListener("click", openPromoModal));
 closePromoButtons.forEach((button) => button.addEventListener("click", closePromoModal));
 promoModal?.addEventListener("click", (event) => event.target === promoModal && closePromoModal());
-document.addEventListener("keydown", (event) => event.key === "Escape" && closePromoModal());
+document.addEventListener("click", (event) => {
+  const galleryTrigger = event.target.closest("[data-gallery-image]");
+  if (galleryTrigger) openPropertyGallery(galleryTrigger);
+});
+document.querySelector("[data-close-property-gallery]")?.addEventListener("click", closePropertyGallery);
+document.querySelector("[data-gallery-prev]")?.addEventListener("click", () => movePropertyGallery(-1));
+document.querySelector("[data-gallery-next]")?.addEventListener("click", () => movePropertyGallery(1));
+propertyLightbox?.addEventListener("click", (event) => event.target === propertyLightbox && closePropertyGallery());
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closePromoModal();
+    closePropertyGallery();
+  }
+  if (propertyLightbox?.classList.contains("is-open") && event.key === "ArrowLeft") movePropertyGallery(-1);
+  if (propertyLightbox?.classList.contains("is-open") && event.key === "ArrowRight") movePropertyGallery(1);
+});
 
 contactForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
