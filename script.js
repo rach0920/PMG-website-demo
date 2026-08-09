@@ -168,7 +168,7 @@ const fallbackProperties = [
       "assets/dalmeny-ave/living-dining-02.jpg",
     ],
     floorplan_url: "assets/dalmeny-ave/floorplan-apartment-213.jpg",
-    virtual_tour_url: "https://caqfpahfforgonprcxhd.supabase.co/storage/v1/object/public/promotion-videos/property-videos/213-dalmeny-domain-tour-v4-music.mp4",
+    virtual_tour_url: "https://caqfpahfforgonprcxhd.supabase.co/storage/v1/object/public/promotion-videos/property-videos/213-97-dalmeny-virtual-tour-youtube.webm",
     sort_order: 1,
     is_active: true,
   },
