@@ -153,10 +153,10 @@ const fallbackProperties = [
     listing_type: "for_lease",
     status: "for lease",
     title: "Stylish One-Bedroom Living in the Heart of Rosebery",
-    address: "213/95 Dalmeny Avenue, Rosebery, NSW 2018",
+    address: "213/97 Dalmeny Avenue, Rosebery NSW 2018",
     price: "$770 per week",
     available_date: "Available 14 August 2026",
-    inspection_time: "Open Inspection: 8 August 2026, 10:00 am - 10:15 am",
+    inspection_time: "Open Inspection: 10 August 2026, 10:00 am - 10:15 am",
     description:
       "Stylish One-Bedroom Living in the Heart of Rosebery\n\nDisclaimer: Furniture shown in the photos is for presentation purposes only and is not included. The property is offered unfurnished.\n\nSet in a well-maintained security building just moments from Rosebery's cafes, parks, and transport, this unfurnished one-bedroom apartment offers a comfortable, low-maintenance lifestyle in one of Sydney's most sought-after inner-city pockets.\n\nThe open-plan living and dining area flows out to a private balcony, ideal for morning coffee or evening relaxation. The kitchen is well-appointed with quality appliances, and the generous bedroom includes built-in storage. The bathroom is clean and modern, complete with a shower and separate bath.\n\nFeatures include:\n- One bedroom with built-in wardrobe\n- One bathroom with shower\n- Open-plan living and dining area\n- Private balcony\n- Unfurnished\n- Well-maintained security building\n\nPerfectly positioned close to Rosebery's shopping village, Australia Design Centre, local parks, and public transport, with easy access to the CBD and Sydney Airport.\n\nContact us today to arrange an inspection.",
     photo_urls: [
@@ -527,6 +527,7 @@ function renderPropertyGridItems(properties) {
                     property.virtual_tour_url
                       ? `<div class="property-virtual-tour">
                           <h4>Virtual tour</h4>
+                          ${property.address ? `<p class="property-video-address">${escapeText(property.address)}</p>` : ""}
                           <video src="${property.virtual_tour_url}" controls playsinline preload="metadata"></video>
                         </div>`
                       : ""

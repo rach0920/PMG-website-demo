@@ -975,6 +975,13 @@ h3 {
   text-transform: uppercase;
 }
 
+.property-video-address {
+  margin: -0.35rem 0 0.85rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .property-virtual-tour video {
   display: block;
   width: 100%;
