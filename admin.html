@@ -223,10 +223,15 @@
             <select name="status" required>
               <option value="for lease">For Lease</option>
               <option value="for sale">For Sale</option>
-              <option value="sold">Sold</option>
               <option value="under application">Under Application</option>
               <option value="deposit taken">Deposit Taken</option>
+              <option value="leased">Leased</option>
+              <option value="sold">Sold</option>
             </select>
+          </label>
+          <label class="full">
+            Listing Title
+            <input name="title" placeholder="Stylish One-Bedroom Living in the Heart of Rosebery" />
           </label>
           <label class="full">
             Property Address
@@ -237,20 +242,55 @@
             <input name="price" placeholder="$1,200 per week / Contact Agent" />
           </label>
           <label>
+            Available Date
+            <input type="date" name="available_date_picker" />
+          </label>
+          <label>
+            Open Date
+            <input type="date" name="inspection_date" />
+          </label>
+          <label>
+            Open Start Time
+            <input type="time" name="inspection_start_time" />
+          </label>
+          <label>
+            Open End Time
+            <input type="time" name="inspection_end_time" />
+          </label>
+          <label>
             Display Order
             <input type="number" name="sort_order" min="0" step="1" placeholder="1" />
+          </label>
+          <label>
+            Website Visibility
+            <select name="is_active">
+              <option value="true">Show on website</option>
+              <option value="false">Hide from website</option>
+            </select>
           </label>
           <label class="full">
             Description
             <textarea name="description" rows="4"></textarea>
           </label>
           <label class="full">
-            Property Photos
+            Existing Photo URLs
+            <textarea name="photo_urls" rows="4" placeholder="One image URL per line. Delete a URL here if you want to remove it from the listing."></textarea>
+          </label>
+          <label class="full">
+            Add Property Photos
             <input type="file" name="photos" accept="image/*" multiple />
           </label>
           <label class="full">
-            Floorplan
+            Floorplan URL
+            <input name="floorplan_url" placeholder="Paste an existing floorplan URL, or upload a file below." />
+          </label>
+          <label class="full">
+            Replace / Add Floorplan
             <input type="file" name="floorplan" accept="image/*,.pdf" />
+          </label>
+          <label class="full">
+            Virtual Tour Video URL
+            <input name="virtual_tour_url" placeholder="Paste Supabase video URL" />
           </label>
           <div class="admin-actions">
             <button class="button primary" type="submit">Save Property</button>

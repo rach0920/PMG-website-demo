@@ -145,6 +145,7 @@ const propertyStatusLabels = {
   sold: "Sold",
   "under application": "Under Application",
   "deposit taken": "Deposit Taken",
+  leased: "Leased",
 };
 
 const fallbackProperties = [
@@ -194,6 +195,73 @@ function initials(name) {
 
 function formValues(form) {
   return Object.fromEntries(new FormData(form).entries());
+}
+
+function formatDateForDisplay(value) {
+  if (!value) return "";
+  const [year, month, day] = String(value).split("-").map(Number);
+  if (!year || !month || !day) return "";
+  return new Date(year, month - 1, day).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatTimeForDisplay(value) {
+  if (!value) return "";
+  const [hour, minute] = String(value).split(":").map(Number);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return "";
+  return new Date(2000, 0, 1, hour, minute).toLocaleTimeString("en-AU", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).toLowerCase();
+}
+
+function parseDisplayDate(value) {
+  if (!value) return "";
+  const match = String(value).match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (!match) return "";
+  const months = {
+    january: "01",
+    february: "02",
+    march: "03",
+    april: "04",
+    may: "05",
+    june: "06",
+    july: "07",
+    august: "08",
+    september: "09",
+    october: "10",
+    november: "11",
+    december: "12",
+  };
+  const month = months[match[2].toLowerCase()];
+  if (!month) return "";
+  return `${match[3]}-${month}-${match[1].padStart(2, "0")}`;
+}
+
+function parseDisplayTime(value) {
+  if (!value) return "";
+  const match = String(value).trim().toLowerCase().match(/(\d{1,2}):(\d{2})\s*(am|pm)/);
+  if (!match) return "";
+  let hour = Number(match[1]);
+  const minute = match[2];
+  if (match[3] === "pm" && hour < 12) hour += 12;
+  if (match[3] === "am" && hour === 12) hour = 0;
+  return `${String(hour).padStart(2, "0")}:${minute}`;
+}
+
+function parseInspectionTimes(value) {
+  const text = String(value || "");
+  const date = parseDisplayDate(text);
+  const timeMatches = [...text.matchAll(/(\d{1,2}:\d{2}\s*(?:am|pm))/gi)];
+  return {
+    date,
+    start: parseDisplayTime(timeMatches[0]?.[1] || ""),
+    end: parseDisplayTime(timeMatches[1]?.[1] || ""),
+  };
 }
 
 function teamPhotoUrl(member) {
@@ -701,12 +769,16 @@ async function renderAdminProperties() {
           (property) => `
             <article class="admin-card">
               ${propertyPhoto(property) ? `<img src="${propertyPhoto(property)}" alt="${escapeText(property.address)}" />` : ""}
-              <h3>${escapeText(property.address || "Property Listing")}</h3>
+              <h3>${escapeText(property.title || property.address || "Property Listing")}</h3>
               <p class="team-role">${escapeText(propertyStatusText(property.status))}</p>
               <p class="admin-muted">
                 ${escapeText(property.listing_type === "for_sale" ? "For Sale" : "For Lease")}<br />
-                ${escapeText(property.price || "")}
+                ${escapeText(property.address || "")}<br />
+                ${escapeText(property.price || "")}<br />
+                ${escapeText(property.available_date || "")}<br />
+                ${escapeText(property.inspection_time || "")}
               </p>
+              ${property.is_active === false ? `<p class="admin-muted">Hidden from website</p>` : ""}
               <div class="admin-actions">
                 <button class="button secondary" type="button" data-edit-property="${property.id}">Edit</button>
                 <button class="button secondary" type="button" data-delete-property="${property.id}">Delete</button>
@@ -1475,10 +1547,20 @@ adminPropertyList?.addEventListener("click", async (event) => {
     propertyEditorForm.elements.index.value = property.id;
     propertyEditorForm.elements.listing_type.value = property.listing_type || "for_lease";
     propertyEditorForm.elements.status.value = property.status || "for lease";
+    propertyEditorForm.elements.title.value = property.title || "";
     propertyEditorForm.elements.address.value = property.address || "";
     propertyEditorForm.elements.price.value = property.price || "";
+    propertyEditorForm.elements.available_date_picker.value = parseDisplayDate(property.available_date || "");
+    const inspection = parseInspectionTimes(property.inspection_time || "");
+    propertyEditorForm.elements.inspection_date.value = inspection.date;
+    propertyEditorForm.elements.inspection_start_time.value = inspection.start;
+    propertyEditorForm.elements.inspection_end_time.value = inspection.end;
     propertyEditorForm.elements.sort_order.value = property.sort_order ?? "";
+    propertyEditorForm.elements.is_active.value = property.is_active === false ? "false" : "true";
     propertyEditorForm.elements.description.value = property.description || "";
+    propertyEditorForm.elements.photo_urls.value = Array.isArray(property.photo_urls) ? property.photo_urls.filter(Boolean).join("\n") : "";
+    propertyEditorForm.elements.floorplan_url.value = property.floorplan_url || "";
+    propertyEditorForm.elements.virtual_tour_url.value = property.virtual_tour_url || "";
     propertyEditorForm.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   if (deleteButton) {
@@ -1500,8 +1582,11 @@ propertyEditorForm?.addEventListener("submit", async (event) => {
     const values = formValues(propertyEditorForm);
     const id = values.index;
     const existing = id ? (await getProperties(true)).find((item) => item.id === id) : null;
-    let photoUrls = existing?.photo_urls || [];
-    let floorplanUrl = existing?.floorplan_url || "";
+    let photoUrls = String(values.photo_urls || "")
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    let floorplanUrl = String(values.floorplan_url || "").trim();
     const photoFiles = Array.from(propertyEditorForm.elements.photos.files || []);
     const floorplanFile = propertyEditorForm.elements.floorplan.files[0];
 
@@ -1516,19 +1601,34 @@ propertyEditorForm?.addEventListener("submit", async (event) => {
       return;
     }
 
-    if (photoFiles.length) photoUrls = await Promise.all(photoFiles.map((file) => uploadPublicFile("property-media", file)));
+    if (photoFiles.length) {
+      const uploadedPhotoUrls = await Promise.all(photoFiles.map((file) => uploadPublicFile("property-media", file)));
+      photoUrls = [...photoUrls, ...uploadedPhotoUrls];
+    }
     if (floorplanFile) floorplanUrl = await uploadPublicFile("property-media", floorplanFile);
+    const availableDate = formatDateForDisplay(values.available_date_picker);
+    const inspectionDate = formatDateForDisplay(values.inspection_date);
+    const inspectionStart = formatTimeForDisplay(values.inspection_start_time);
+    const inspectionEnd = formatTimeForDisplay(values.inspection_end_time);
+    const inspectionTime =
+      inspectionDate && inspectionStart && inspectionEnd
+        ? `Open Inspection: ${inspectionDate}, ${inspectionStart} - ${inspectionEnd}`
+        : "";
 
     const row = {
       listing_type: values.listing_type,
       status: values.status,
+      title: values.title || null,
       address: values.address,
       price: values.price || null,
+      available_date: availableDate ? `Available ${availableDate}` : null,
+      inspection_time: inspectionTime || null,
       description: values.description || null,
       photo_urls: photoUrls,
       floorplan_url: floorplanUrl || null,
+      virtual_tour_url: values.virtual_tour_url || null,
       sort_order: values.sort_order ? Number(values.sort_order) : (await getProperties(true)).length + 1,
-      is_active: true,
+      is_active: values.is_active !== "false",
     };
 
     if (id) {
@@ -1552,7 +1652,12 @@ propertyEditorForm?.addEventListener("submit", async (event) => {
 
 document.querySelector("#newProperty")?.addEventListener("click", () => {
   propertyEditorForm?.reset();
-  if (propertyEditorForm) propertyEditorForm.elements.index.value = "";
+  if (propertyEditorForm) {
+    propertyEditorForm.elements.index.value = "";
+    propertyEditorForm.elements.listing_type.value = "for_lease";
+    propertyEditorForm.elements.status.value = "for lease";
+    propertyEditorForm.elements.is_active.value = "true";
+  }
 });
 
 document.querySelector("#clearProperties")?.addEventListener("click", async () => {
