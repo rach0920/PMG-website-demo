@@ -354,24 +354,7 @@ async function getProperties(includeInactive = false) {
   const { data, error } = await query;
   if (includeInactive) return error || !data ? [] : data;
   if (error || !data) return fallbackProperties;
-  const mergedData = data.map((property) => {
-    const fallback = fallbackProperties.find((item) => item.address.toLowerCase() === String(property.address || "").toLowerCase());
-    if (!fallback) return property;
-    return {
-      ...fallback,
-      ...property,
-      title: property.title || fallback.title,
-      description: fallback.description,
-      photo_urls: Array.isArray(property.photo_urls) && property.photo_urls.length ? property.photo_urls : fallback.photo_urls,
-      floorplan_url: property.floorplan_url || fallback.floorplan_url,
-      virtual_tour_url: property.virtual_tour_url || fallback.virtual_tour_url,
-      available_date: property.available_date || fallback.available_date,
-      inspection_time: property.inspection_time || fallback.inspection_time,
-    };
-  });
-  const existingAddresses = new Set(mergedData.map((property) => String(property.address || "").toLowerCase()));
-  const missingFallbackProperties = fallbackProperties.filter((property) => !existingAddresses.has(property.address.toLowerCase()));
-  return [...missingFallbackProperties, ...mergedData];
+  return data;
 }
 
 function renderContent(content) {
@@ -553,15 +536,7 @@ function renderPropertyGridItems(properties) {
   if (!propertyGrids.length) return;
   propertyGrids.forEach((grid) => {
     const listingType = grid.dataset.propertyGrid;
-    const baseItems = fallbackProperties.filter((property) => property.listing_type === listingType);
-    const remoteItems = properties.filter((property) => property.listing_type === listingType);
-    const seenAddresses = new Set();
-    const items = [...baseItems, ...remoteItems].filter((property) => {
-      const key = String(property.address || property.id || "").toLowerCase();
-      if (seenAddresses.has(key)) return false;
-      seenAddresses.add(key);
-      return true;
-    });
+    const items = properties.filter((property) => property.listing_type === listingType);
     grid.innerHTML = items.length
       ? items
           .map((property) => {
@@ -770,14 +745,7 @@ async function renderAdminProperties() {
             <article class="admin-card">
               ${propertyPhoto(property) ? `<img src="${propertyPhoto(property)}" alt="${escapeText(property.address)}" />` : ""}
               <h3>${escapeText(property.title || property.address || "Property Listing")}</h3>
-              <p class="team-role">${escapeText(propertyStatusText(property.status))}</p>
-              <p class="admin-muted">
-                ${escapeText(property.listing_type === "for_sale" ? "For Sale" : "For Lease")}<br />
-                ${escapeText(property.address || "")}<br />
-                ${escapeText(property.price || "")}<br />
-                ${escapeText(property.available_date || "")}<br />
-                ${escapeText(property.inspection_time || "")}
-              </p>
+              <p class="team-role">${escapeText(property.listing_type === "for_sale" ? "For Sale" : "For Lease")} / ${escapeText(propertyStatusText(property.status))}</p>
               ${property.is_active === false ? `<p class="admin-muted">Hidden from website</p>` : ""}
               <div class="admin-actions">
                 <button class="button secondary" type="button" data-edit-property="${property.id}">Edit</button>
