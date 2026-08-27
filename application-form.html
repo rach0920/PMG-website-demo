@@ -500,9 +500,35 @@
                 </div>
             </section>
 
-            <!-- SECTION 2: PRIMARY APPLICANT EMPLOYMENT -->
+            <!-- SECTION 2: PROPOSED LEASE DETAILS -->
             <section>
-                <h2>2. PRIMARY APPLICANT - EMPLOYMENT DETAILS</h2>
+                <h2>2. PROPOSED LEASE DETAILS</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Lease Commencement Date <span class="required">*</span></label>
+                        <input type="date" name="leaseCommencementDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Lease Period <span class="required">*</span></label>
+                        <select name="leasePeriod" required>
+                            <option value="">-- Select --</option>
+                            <option value="6 months">6 months</option>
+                            <option value="12 months">12 months</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Lease Period Notes</label>
+                        <input type="text" name="leasePeriodNotes" placeholder="If other, please specify preferred lease term.">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: PRIMARY APPLICANT EMPLOYMENT -->
+            <section>
+                <h2>3. PRIMARY APPLICANT - EMPLOYMENT DETAILS</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Employment Status <span class="required">*</span></label>
@@ -538,9 +564,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: CO-APPLICANTS -->
+            <!-- SECTION 4: CO-APPLICANTS -->
             <section>
-                <h2>3. CO-APPLICANTS (Maximum 8 people)</h2>
+                <h2>4. CO-APPLICANTS (Maximum 8 people)</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Provide complete details and employment information for each co-applicant.</p>
                 <div id="coApplicantsContainer"></div>
                 <button type="button" class="btn-add" onclick="addCoApplicant()" id="addCoApplicantBtn">
@@ -548,9 +574,9 @@
                 </button>
             </section>
 
-            <!-- SECTION 4: EMERGENCY CONTACT & REFERENCES -->
+            <!-- SECTION 5: EMERGENCY CONTACT & REFERENCES -->
             <section>
-                <h2>4. EMERGENCY CONTACT & REFERENCES</h2>
+                <h2>5. EMERGENCY CONTACT & REFERENCES</h2>
                 
                 <h3 style="margin: 0 0 15px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Emergency Contact</h3>
                 <div class="form-row full">
@@ -645,9 +671,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 5: OTHER OCCUPANTS -->
+            <!-- SECTION 6: OTHER OCCUPANTS -->
             <section>
-                <h2>5. OTHER OCCUPANTS</h2>
+                <h2>6. OTHER OCCUPANTS</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">List all other people living in the property.</p>
                 <div id="occupantsContainer"></div>
                 <button type="button" class="btn-add" onclick="addOccupant()">
@@ -655,9 +681,9 @@
                 </button>
             </section>
 
-            <!-- SECTION 6: PETS -->
+            <!-- SECTION 7: PETS -->
             <section>
-                <h2>6. PETS (Maximum 4)</h2>
+                <h2>7. PETS (Maximum 4)</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Declare all pets. Landlord approval required.</p>
                 <div id="petsContainer"></div>
                 <button type="button" class="btn-add" onclick="addPet()" id="addPetBtn">
@@ -665,9 +691,9 @@
                 </button>
             </section>
 
-            <!-- SECTION 7: VEHICLES -->
+            <!-- SECTION 8: VEHICLES -->
             <section>
-                <h2>7. VEHICLES (Maximum 4)</h2>
+                <h2>8. VEHICLES (Maximum 4)</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Declare all vehicles that will be parked at the property.</p>
                 <div id="vehiclesContainer"></div>
                 <button type="button" class="btn-add" onclick="addVehicle()" id="addVehicleBtn">
@@ -675,9 +701,9 @@
                 </button>
             </section>
 
-            <!-- SECTION 8: UTILITY CONNECTION -->
+            <!-- SECTION 9: UTILITY CONNECTION -->
             <section>
-                <h2>8. UTILITY CONNECTION</h2>
+                <h2>9. UTILITY CONNECTION</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Utility Connection Needed? <span class="required">*</span></label>
@@ -721,9 +747,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 9: OVERSEAS STUDENTS / NON-CITIZENS -->
+            <!-- SECTION 10: OVERSEAS STUDENTS / NON-CITIZENS -->
             <section>
-                <h2>9. OVERSEAS STUDENTS / NON-CITIZENS</h2>
+                <h2>10. OVERSEAS STUDENTS / NON-CITIZENS</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Are you an overseas student or non-PR/non-citizen?</label>
@@ -768,9 +794,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 10: PROPERTY INSPECTION -->
+            <!-- SECTION 11: PROPERTY INSPECTION -->
             <section>
-                <h2>10. PROPERTY INSPECTION</h2>
+                <h2>11. PROPERTY INSPECTION</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Have you physically inspected the property? <span class="required">*</span></label>
@@ -819,9 +845,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 11: DEFENCE FORCE -->
+            <!-- SECTION 12: DEFENCE FORCE -->
             <section>
-                <h2>11. DEFENCE FORCE PERSONNEL</h2>
+                <h2>12. DEFENCE FORCE PERSONNEL</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Defence Force personnel subject to posted transfers?</label>
@@ -845,9 +871,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 12: 100 POINTS ID VERIFICATION CHECKLIST -->
+            <!-- SECTION 13: 100 POINTS ID VERIFICATION CHECKLIST -->
             <section>
-                <h2>12. 100 POINTS ID VERIFICATION CHECKLIST</h2>
+                <h2>13. 100 POINTS ID VERIFICATION CHECKLIST</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Australian 100 Points ID Verification - Select at least 100 points and upload supporting documents:</p>
                 
                 <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
@@ -956,9 +982,9 @@
                 <div id="uploadedIdDocs"></div>
             </section>
 
-            <!-- SECTION 13: OCCUPANCY CLAUSE - NSW LEGISLATION -->
+            <!-- SECTION 14: OCCUPANCY CLAUSE - NSW LEGISLATION -->
             <section>
-                <h2>13. OCCUPANCY CLAUSE - MAXIMUM OCCUPANCY</h2>
+                <h2>14. OCCUPANCY CLAUSE - MAXIMUM OCCUPANCY</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
                     This clause complies with NSW Residential Tenancies Act 2010 to prevent overcrowding and ensure safe living conditions.
                 </p>
@@ -999,9 +1025,9 @@
                 </div>
             </section>
 
-            <!-- SECTION 14: DECLARATION & SIGNATURE -->
+            <!-- SECTION 15: DECLARATION & SIGNATURE -->
             <section>
-                <h2>14. DECLARATION & SIGNATURE</h2>
+                <h2>15. DECLARATION & SIGNATURE</h2>
                 
                 <div class="alert alert-info">
                     <strong>Declaration - All Applicants Must Agree</strong>
@@ -1886,6 +1912,9 @@
                     Phone: data.phone || '',
                     Email: data.email || '',
                     'Current Address': data.currentAddress || '',
+                    'Lease Commencement Date': data.leaseCommencementDate || '',
+                    'Lease Period': data.leasePeriod || '',
+                    'Lease Period Notes': data.leasePeriodNotes || '',
                     'Submitted At': data.submittedAt || '',
                     _attachments: applicationAttachments
                 });
