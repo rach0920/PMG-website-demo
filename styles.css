@@ -718,6 +718,13 @@ h3 {
 
 .promotion-image-card {
   overflow: hidden;
+  width: 100%;
+  max-width: 620px;
+  justify-self: center;
+}
+
+.promotion-image-card:only-child {
+  grid-column: 1 / -1;
 }
 
 .video-card video {
@@ -730,9 +737,10 @@ h3 {
 .promotion-image-card img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: 780px;
   background: #000;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .video-card-content,
