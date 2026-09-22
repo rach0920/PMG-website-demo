@@ -125,19 +125,21 @@ const fallbackVideos = [
 const fallbackPromotionImages = [
   {
     id: "fallback-promotion-image-01",
-    title: "Premium Outdoor Campaign",
-    description: "PMG street-level promotion across high-traffic Sydney locations.",
-    image_url: "assets/promotion-ad-street-01.jpeg",
-    link_url: "",
-  },
-  {
-    id: "fallback-promotion-image-02",
-    title: "Premium Brand Visibility",
-    description: "Luxury property management advertising designed for landlord confidence.",
-    image_url: "assets/promotion-ad-street-02.jpeg",
+    title: "A proud step forward for PMG",
+    description: "PMG is now registered on Buy NSW and ready to participate in NSW Government procurement opportunities.",
+    image_url: "assets/pmg-buy-nsw-announcement-20260922.png",
     link_url: "",
   },
 ];
+
+// Use the revised artwork for the existing announcement. Once the image is
+// replaced in Admin, its new Supabase URL takes precedence automatically.
+const previousPmgAnnouncementImage = "1790033141578-ops8vei26hs.png";
+function promotionDisplayImageUrl(image) {
+  return image.image_url?.includes(previousPmgAnnouncementImage)
+    ? "assets/pmg-buy-nsw-announcement-20260922.png"
+    : image.image_url;
+}
 
 const propertyStatusLabels = {
   "for lease": "For Lease",
@@ -425,13 +427,16 @@ async function renderPublicPromotionImages() {
   }
   promotionImageGrid.innerHTML = images
     .map((image, index) => {
+      const isUpdatedAnnouncement =
+        image.image_url?.includes(previousPmgAnnouncementImage) ||
+        image.image_url === "assets/pmg-buy-nsw-announcement-20260922.png";
       const imageMarkup = `
-        <img src="${image.image_url}" alt="${escapeText(image.title || "PMG promotion image")}" loading="lazy" />
-        <div class="promotion-image-card-content">
+        <img src="${escapeText(promotionDisplayImageUrl(image) || "")}" alt="${escapeText(image.title || "PMG promotion image")}" loading="lazy" />
+        ${isUpdatedAnnouncement ? "" : `<div class="promotion-image-card-content">
           <span>${String(index + 1).padStart(2, "0")}</span>
           <h3>${escapeText(image.title || "PMG Promotion Image")}</h3>
           <p>${escapeText(image.description || "")}</p>
-        </div>
+        </div>`}
       `;
       return `
         <article class="promotion-image-card reveal is-visible">

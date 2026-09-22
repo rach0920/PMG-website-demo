@@ -346,6 +346,12 @@ h3 {
   margin-bottom: 44px;
 }
 
+.promotion-images-section .section-kicker {
+  font-family: Inter, Arial, sans-serif;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
 .feature-grid,
 .testimonial-grid {
   display: grid;
