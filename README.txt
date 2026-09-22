@@ -1,7 +1,7 @@
-PMG announcement update
+PMG announcement image fix
 
-The live page asks for /assets/pmg-buy-nsw-announcement-20260922.png, but that image was uploaded only to the repository root, so the /assets/ URL returns 404.
+The website currently requests /assets/pmg-buy-nsw-announcement-20260922.png (404). The image exists and opens at /pmg-buy-nsw-announcement-20260922.png. These files change the page to use the existing root image.
 
-To fix it, open https://github.com/rach0920/PMG-website-demo/tree/main/assets and upload only pmg-buy-nsw-announcement-20260922.png into this assets folder, then commit. Wait for Vercel Ready. There is no need to upload index.html, script.js, or styles.css again.
+Extract this ZIP. In https://github.com/rach0920/PMG-website-demo choose Add file > Upload files. Upload BOTH index.html and script.js from this ZIP to the repository root, replacing the two existing files. Commit the change. Do not upload the ZIP itself.
 
-The ZIP contains the complete package for future reference. Unzip first; GitHub will not unpack a ZIP uploaded as a single file.
+Wait until Vercel is Ready, then open https://www.premiummg.com.au/#promotion-images and refresh. The image itself is already online; there is no need to upload it again. The small gold uppercase heading remains.

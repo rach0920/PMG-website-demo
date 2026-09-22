@@ -127,7 +127,7 @@ const fallbackPromotionImages = [
     id: "fallback-promotion-image-01",
     title: "A proud step forward for PMG",
     description: "PMG is now registered on Buy NSW and ready to participate in NSW Government procurement opportunities.",
-    image_url: "assets/pmg-buy-nsw-announcement-20260922.png",
+    image_url: "pmg-buy-nsw-announcement-20260922.png",
     link_url: "",
   },
 ];
@@ -137,7 +137,7 @@ const fallbackPromotionImages = [
 const previousPmgAnnouncementImage = "1790033141578-ops8vei26hs.png";
 function promotionDisplayImageUrl(image) {
   return image.image_url?.includes(previousPmgAnnouncementImage)
-    ? "assets/pmg-buy-nsw-announcement-20260922.png"
+    ? "pmg-buy-nsw-announcement-20260922.png"
     : image.image_url;
 }
 
@@ -429,7 +429,7 @@ async function renderPublicPromotionImages() {
     .map((image, index) => {
       const isUpdatedAnnouncement =
         image.image_url?.includes(previousPmgAnnouncementImage) ||
-        image.image_url === "assets/pmg-buy-nsw-announcement-20260922.png";
+        image.image_url === "pmg-buy-nsw-announcement-20260922.png";
       const imageMarkup = `
         <img src="${escapeText(promotionDisplayImageUrl(image) || "")}" alt="${escapeText(image.title || "PMG promotion image")}" loading="lazy" />
         ${isUpdatedAnnouncement ? "" : `<div class="promotion-image-card-content">
