@@ -1,11 +1,7 @@
-PMG announcement update — 22 September 2026
+PMG announcement update
 
-Unzip before uploading. In GitHub repo rach0920/PMG-website-demo:
-1. Upload index.html, script.js and styles.css to the repository root, replacing the existing files.
-2. Open the assets folder in GitHub and upload assets/pmg-buy-nsw-announcement-20260922.png there.
-3. Commit the changes. Vercel should redeploy automatically.
+The live page asks for /assets/pmg-buy-nsw-announcement-20260922.png, but that image was uploaded only to the repository root, so the /assets/ URL returns 404.
 
-The homepage displays the supplied revised announcement in full. AGENCY PROMOTION IMAGES appears only as a small gold uppercase title; the large white title has been removed. The announcement has no duplicate caption below it. The existing Supabase announcement record remains; the public site maps its previous image URL to this new asset. A later replacement through Admin will use its new URL automatically.
+To fix it, open https://github.com/rach0920/PMG-website-demo/tree/main/assets and upload only pmg-buy-nsw-announcement-20260922.png into this assets folder, then commit. Wait for Vercel Ready. There is no need to upload index.html, script.js, or styles.css again.
 
-Do not upload this ZIP as a single file to GitHub; GitHub does not unpack it.
-
+The ZIP contains the complete package for future reference. Unzip first; GitHub will not unpack a ZIP uploaded as a single file.
